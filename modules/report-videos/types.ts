@@ -1,27 +1,25 @@
 // What the api answers at /api/videos, read by the page (web/videos.tsx).
 
-/** An issue (daily, weekly) or one selected item. */
-export type VideoKind = "daily" | "weekly" | "item";
+export type VideoKind = "daily" | "weekly";
 
 export interface VideoEntry {
   kind: VideoKind;
-  /** The issue's date or week, the item's id. */
+  /** The issue's date or week. */
   key: string;
-  /** An issue's number; null for an item. */
-  issueNumber: number | null;
-  /** An issue's title, the item's headline. */
+  issueNumber: number;
   title: string;
-  /** What an issue leads with; null for an item. */
+  /** What the issue leads with. */
   headline: string | null;
-  /** "10月7日 星期三", "10月5日—10月11日", "10月8日 14:30". */
+  /** "10月7日 星期三", "10月5日—10月11日". */
   period: string;
   durationSeconds: number;
   bytes: number;
-  /** How many of its screens play a video of the news itself. */
+  /** Screens that play a video of the news itself, and screens that show its picture. */
   clips: number;
+  pictures: number;
   video: string;
   poster: string;
-  /** The issue's or the item's page. */
+  /** The issue's page. */
   page: string;
   renderedAt: string;
 }
@@ -30,5 +28,4 @@ export interface VideoEntry {
 export interface VideosResponse {
   daily: VideoEntry[];
   weekly: VideoEntry[];
-  items: VideoEntry[];
 }

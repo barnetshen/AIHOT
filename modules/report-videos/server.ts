@@ -1,4 +1,4 @@
-// The backend of the news videos: the worker renders them (backend/videos.ts), the api lists them
+// The backend of the broadcast videos: the worker renders them (backend/videos.ts), the api lists them
 // and sends their files, with byte ranges so players can seek.
 import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
@@ -38,7 +38,7 @@ export default defineServerModule({
       sendJsonWithEtag(req, reply, await listVideos(), { etagPrefix: "videos", cacheControl: "public, max-age=60, must-revalidate" }));
     app.get("/api/videos/files/:name", (req, reply) => sendVideoFile(req, reply, (req.params as { name: string }).name));
   },
-  // Every ten minutes: a new item or issue gets its video within minutes, a withdrawal takes it down.
+  // Every ten minutes: a new issue gets its broadcast within minutes, a withdrawal takes it down.
   schedules: [{ name: "videos.render", cron: "*/10 * * * *", run: refreshVideos }],
   alerts: videoFindings,
   sitemap: { pages: [{ loc: "/videos", changefreq: "daily", priority: 0.5 }] },

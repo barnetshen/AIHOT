@@ -3,9 +3,9 @@
 FROM node:24-trixie-slim AS base
 WORKDIR /app
 # pg_dump for the optional database backups (Debian's client matches the PostgreSQL 17 server in compose);
-# ffmpeg encodes the video editions (modules/report-videos).
+# ffmpeg encodes the broadcast videos (modules/report-videos), bzip2 unpacks their voice model.
 RUN apt-get update \
- && apt-get install -y --no-install-recommends postgresql-client ca-certificates ffmpeg \
+ && apt-get install -y --no-install-recommends postgresql-client ca-certificates ffmpeg bzip2 \
  && rm -rf /var/lib/apt/lists/*
 
 FROM base AS build
@@ -22,6 +22,8 @@ COPY modules/report-videos/package.json modules/report-videos/
 RUN npm ci --no-audit --no-fund ${NPM_REGISTRY:+--registry=$NPM_REGISTRY}
 COPY . .
 RUN npm run build -w @aihot/web && npm prune --omit=dev --no-audit --no-fund
+# The broadcast videos' voice model (about 170 MB, fetched once per build).
+RUN node modules/report-videos/scripts/fetch-voice.ts
 
 FROM base
 ENV NODE_ENV=production

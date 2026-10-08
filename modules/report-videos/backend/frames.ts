@@ -7,11 +7,10 @@ import path from "node:path";
 import satori from "satori";
 import sharp from "sharp";
 import { renderSVG } from "uqr";
-import { EDITION_WHEN, SITE, subjectAfter, withSubject } from "@aihot/site";
+import { EDITION_WHEN, SITE, subjectAfter } from "@aihot/site";
 import { REPO_ROOT } from "@aihot/backend/config";
 import { brandMark, h, nameMark, SITE_HOST, type Node } from "@aihot/backend/media/og";
-import type { VideoKind } from "../types.ts";
-import type { Entry, Scene } from "./scenes.ts";
+import { issueName, type Entry, type Scene } from "./scenes.ts";
 
 export const WIDTH = 1080;
 export const HEIGHT = 1920;
@@ -36,7 +35,6 @@ function fonts() {
   return fontsPromise;
 }
 
-const issueName = (kind: VideoKind) => withSubject(kind === "daily" ? "日报" : "周报");
 const text = (style: Record<string, unknown>, children: string) => h("div", { display: "flex", ...style }, children);
 const len = (s: string) => [...s].length;
 
@@ -86,23 +84,27 @@ const progress = (rank: number, total: number) =>
     h("div", { width: 34, height: 8, borderRadius: 4, marginRight: 10, backgroundColor: i + 1 === rank ? ACCENT : i + 1 < rank ? "rgba(44,226,232,0.38)" : LINE })));
 
 /**
- * Where a screen's video plays: the frame leaves this box dark and the encoder lays the video over it
- * (encode.ts). Right under the header, which has a fixed height so the box does not move.
+ * Where a screen shows the news' own video or picture: the frame leaves this box dark, and the encoder lays
+ * the video over it (encode.ts) or renderFrame the picture. Right under the header, which has a fixed
+ * height so the box does not move.
  */
 export const CLIP_BOX = { x: 88, y: 248, width: 904, height: 508 } as const;
 
-/** A screen about one report: what places it (`top`), its title, summary and source; its video above them when it has one. */
+/** Whether a screen about a report has its box: the report's own video or picture goes in it. */
+export const hasBox = (entry: Entry) => !!(entry.video || entry.image);
+
+/** A screen about one report: what places it (`top`), its title, summary and source; its video or picture above them when it has one. */
 async function news(entry: Entry, right: string, top: Node[], foot: Node | null): Promise<Node> {
-  const clip = !!entry.clip;
-  const titleSize = clip ? (len(entry.title) > 40 ? 54 : 62) : len(entry.title) > 40 ? 62 : len(entry.title) > 24 ? 70 : 80;
+  const boxed = hasBox(entry);
+  const titleSize = boxed ? (len(entry.title) > 40 ? 54 : 62) : len(entry.title) > 40 ? 62 : len(entry.title) > 24 ? 70 : 80;
   const others = entry.others > 1 ? `另有 ${entry.others - 1} 个来源报道` : null;
   return frame([
     await header(right),
-    clip ? h("div", { display: "flex", marginTop: CLIP_BOX.y - 120 - HEADER, width: CLIP_BOX.width, height: CLIP_BOX.height, backgroundColor: "#000000" }) : null,
-    h("div", { display: "flex", alignItems: "flex-end", marginTop: clip ? 52 : 150 }, top),
-    text({ marginTop: clip ? 36 : 64, fontSize: titleSize, fontWeight: 700, lineHeight: 1.32 }, entry.title),
-    entry.summary ? text({ marginTop: clip ? 28 : 48, fontSize: clip ? 38 : 42, lineHeight: 1.65, color: SOFT }, entry.summary) : null,
-    h("div", { display: "flex", alignItems: "center", marginTop: clip ? 32 : 56, fontSize: 32, color: MUTED }, [
+    boxed ? h("div", { display: "flex", marginTop: CLIP_BOX.y - 120 - HEADER, width: CLIP_BOX.width, height: CLIP_BOX.height, backgroundColor: "#000000" }) : null,
+    h("div", { display: "flex", alignItems: "flex-end", marginTop: boxed ? 52 : 150 }, top),
+    text({ marginTop: boxed ? 36 : 64, fontSize: titleSize, fontWeight: 700, lineHeight: 1.32 }, entry.title),
+    entry.summary ? text({ marginTop: boxed ? 28 : 48, fontSize: boxed ? 38 : 42, lineHeight: 1.65, color: SOFT }, entry.summary) : null,
+    h("div", { display: "flex", alignItems: "center", marginTop: boxed ? 32 : 56, fontSize: 32, color: MUTED }, [
       text({}, `来源：${entry.source}`),
       entry.firstParty ? text({ marginLeft: 18, padding: "4px 16px", borderRadius: 8, backgroundColor: "rgba(44,226,232,0.14)", color: ACCENT, fontSize: 28 }, "一手") : null,
       others ? text({ marginLeft: 24 }, `· ${others}`) : null,
@@ -133,13 +135,11 @@ async function tree(scene: Scene): Promise<Node> {
     }
     case "entry":
       return news(scene.entry, `${issueName(scene.kind)} · ${scene.period}`, [
-        text({ fontSize: scene.entry.clip ? 96 : 168, fontWeight: 700, lineHeight: 1, color: ACCENT }, String(scene.rank).padStart(2, "0")),
-        text({ marginLeft: 20, marginBottom: scene.entry.clip ? 8 : 18, fontSize: 44, color: MUTED }, `/ ${String(scene.total).padStart(2, "0")}`),
+        text({ fontSize: hasBox(scene.entry) ? 96 : 168, fontWeight: 700, lineHeight: 1, color: ACCENT }, String(scene.rank).padStart(2, "0")),
+        text({ marginLeft: 20, marginBottom: hasBox(scene.entry) ? 8 : 18, fontSize: 44, color: MUTED }, `/ ${String(scene.total).padStart(2, "0")}`),
         h("div", { display: "flex", flex: 1 }),
-        text({ marginBottom: scene.entry.clip ? 8 : 18, padding: "10px 28px", borderRadius: 999, border: `2px solid ${ACCENT}`, fontSize: 32, color: ACCENT }, scene.section),
+        text({ marginBottom: hasBox(scene.entry) ? 8 : 18, padding: "10px 28px", borderRadius: 999, border: `2px solid ${ACCENT}`, fontSize: 32, color: ACCENT }, scene.section),
       ], progress(scene.rank, scene.total));
-    case "item":
-      return news(scene.entry, scene.time, [kicker(scene.label)], null);
     case "theme":
       return frame([
         await header(`${issueName(scene.kind)} · ${scene.period}`),
@@ -182,8 +182,10 @@ async function tree(scene: Scene): Promise<Node> {
   }
 }
 
-/** PNG bytes of a scene. */
-export async function renderFrame(scene: Scene): Promise<Buffer> {
+/** PNG bytes of a scene, with `picture` (CLIP_BOX's size) laid in its box. */
+export async function renderFrame(scene: Scene, picture: Buffer | null = null): Promise<Buffer> {
   const svg = await satori(await tree(scene) as never, { width: WIDTH, height: HEIGHT, fonts: await fonts() });
-  return sharp(Buffer.from(svg)).png({ compressionLevel: 3 }).toBuffer();
+  const frame = sharp(Buffer.from(svg));
+  if (picture) frame.composite([{ input: picture, left: CLIP_BOX.x, top: CLIP_BOX.y }]);
+  return frame.png({ compressionLevel: 3 }).toBuffer();
 }

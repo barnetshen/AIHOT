@@ -1,4 +1,4 @@
-// The video feed on the web: an entry in the sidebar's 内容 and on the 我的 page.
+// The broadcasts on the web: an entry in the sidebar's 内容 and on the 我的 page.
 import type { SVGProps } from "react";
 import { defineWebModule } from "@aihot/web/modules";
 
@@ -13,6 +13,6 @@ function IconVideo({ size = 18, ...rest }: SVGProps<SVGSVGElement> & { size?: nu
 
 export default defineWebModule({
   name: "report-videos",
-  sidebar: { section: "内容", items: [{ to: "/videos", label: "视频", icon: IconVideo }] },
-  tools: [{ to: "/videos", label: "新闻视频", icon: <IconVideo size={18} /> }],
+  sidebar: { section: "内容", items: [{ to: "/videos", label: "视频播报", icon: IconVideo }] },
+  tools: [{ to: "/videos", label: "视频播报", icon: <IconVideo size={18} /> }],
 });
