@@ -15,7 +15,7 @@ import type { NewsMedia } from "./media.ts";
 import { VOICE } from "./voice.ts";
 
 /** Bump when the drawing, the timing or the wording changes: every video is rendered again. */
-export const VIDEO_TEMPLATE_VERSION = `video-2026-10-08.3+${VOICE}`;
+export const VIDEO_TEMPLATE_VERSION = `video-2026-10-08.4+${VOICE}`;
 
 export interface Entry {
   title: string;
@@ -129,7 +129,7 @@ export function narration(scene: Scene): string {
         scene.overview ? end(spoken(scene.overview)) : "",
       ].join("");
     case "entry":
-      return [`第${scene.rank}条。`, end(spoken(scene.entry.title)), scene.entry.summary ? end(spoken(scene.entry.summary)) : ""].join("");
+      return [`${scene.rank}。`, end(spoken(scene.entry.title)), scene.entry.summary ? end(spoken(scene.entry.summary)) : ""].join("");
     case "theme":
       return [`本周主线${scene.index}，`, end(spoken(scene.heading)), scene.summary ? end(spoken(scene.summary)) : ""].join("");
     case "headlines":

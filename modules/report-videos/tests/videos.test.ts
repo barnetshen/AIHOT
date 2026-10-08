@@ -134,7 +134,7 @@ test("a daily's broadcast reads every screen, shows the news' video and picture,
   assert.deepEqual([video.clips, video.pictures], [1, 1], "the lead plays its video, the second shows its picture, the third is text");
   const scenes = scenesOf((await loadReport("daily", DAILY))!);
   assert.deepEqual(read, scenes.map(narration), "every screen is read aloud");
-  assert.match(read[1]!, new RegExp(`^第1条。${lead.title}。`), "the lead is read first");
+  assert.match(read[1]!, new RegExp(`^1。${lead.title}。`), "the lead is read first");
   assert.match(read.at(-1)!, /我们明天见。$/);
 
   const info = probe(fileOf(video.video));
