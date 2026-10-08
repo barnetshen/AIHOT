@@ -79,6 +79,14 @@ docker compose run --rm setup && docker compose up -d
 
 下面按时间从新到旧列出每次更新要注意的事。
 
+#### 新闻视频（2026 年 10 月 8 日）
+
+这个站启用了模块 `report-videos`：每条精选、每期日报和周报自动生成竖屏短视频，在 `/videos` 上下滑着看；新闻原文自带视频、来源允许展示全文的，直接播放原视频。说明见 [`modules/report-videos/README.md`](../modules/report-videos/README.md)。
+
+- 迁移 `0058_report_videos` 新建 `report_videos` 表，不改已有数据。
+- worker 所在的机器要有 `ffmpeg` 和 `ffprobe`：Docker 镜像已经装上（重新 `docker compose build` 即可）；不用 Docker 的，先装好再更新。
+- 视频文件写在数据目录的 `videos/` 下，最多保留 14 期日报、8 期周报和最新 60 条精选的视频，一般不超过几百 MB。
+
 #### 原帖展示与引擎同步（2026 年 10 月 6 日）
 
 没有新增必填环境变量或数据库迁移。自己维护 `site/site.ts` 的站点需补上 `REPORTS.quiet`，可对照示范配置：日报时段内有资料经过评判、但没有新大事时照常出刊，用这两句做标题与导语；导语的 `{start}`、`{end}` 是时段起止。没有任何资料经过评判仍算采集或判断失败，不伪装成平静的一天。
@@ -225,7 +233,7 @@ docker compose logs -f --tail 100 api worker web
 
 ## 不用 Docker
 
-需要 Node.js 24.11 以上和 PostgreSQL 16 或 17，系统用 Linux 或 macOS；Windows 上请在 WSL2 里运行，或者用上面的 Docker 方式。
+需要 Node.js 24.11 以上、PostgreSQL 16 或 17，以及生成新闻视频用的 `ffmpeg`（见 [`modules/report-videos`](../modules/report-videos/README.md)），系统用 Linux 或 macOS；Windows 上请在 WSL2 里运行，或者用上面的 Docker 方式。
 
 ```bash
 npm ci

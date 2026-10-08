@@ -1,0 +1,20 @@
+{
+  "name": "@aihot/report-videos",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./module": "./module.ts",
+    "./server": "./server.ts",
+    "./web": "./web.tsx"
+  },
+  "dependencies": {
+    "@aihot/api": "*",
+    "@aihot/backend": "*",
+    "@aihot/contracts": "*",
+    "@aihot/site": "*",
+    "cheerio": "1.2.0",
+    "satori": "0.33.5",
+    "sharp": "0.35.5",
+    "uqr": "0.1.3"
+  }
+}

@@ -10,4 +10,4 @@
 | `pages/` | 使用规则、隐私说明（模板，上线前按实际情况改写） |
 | `public/` | 发布在网站根目录的固定文件（站名、地址等占位符替换后发布）：`robots.txt`、`manifest.webmanifest`、`openapi-v1.json`，以及可选的 `.well-known/security.txt` |
 | `changelog.json` | 更新日志 |
-| `modules/` | 启用哪些模块：`index.ts`、`server.ts`、`web.ts` 三份清单，列出仓库根目录 `modules/<名字>/` 里要用的模块，默认都为空，见 [架构](../docs/architecture.md#模块) 的“模块” |
+| `modules/` | 启用哪些模块：`index.ts`、`server.ts`、`web.ts` 三份清单，列出仓库根目录 `modules/<名字>/` 里要用的模块；这个站启用了 `report-videos`（新闻视频，见 [它的说明](../modules/report-videos/README.md)），见 [架构](../docs/architecture.md#模块) 的“模块” |
