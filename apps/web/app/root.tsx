@@ -10,6 +10,7 @@ import type { Route } from "./+types/root";
 import "./app.css";
 import { Sidebar } from "./components/shell/Sidebar";
 import { TabBar } from "./components/shell/TabBar";
+import { useScreen } from "./components/shell/screens";
 import { PullToRefresh } from "./components/shell/PullToRefresh";
 import { usePageTransition } from "./components/shell/transitions";
 import { SearchOverlay } from "./features/search/SearchOverlay";
@@ -120,8 +121,9 @@ export default function App() {
     document.addEventListener("touchstart", noop, { passive: true });
     return () => document.removeEventListener("touchstart", noop);
   }, []);
-  // The admin has its own chrome.
-  if (pathname === "/admin" || pathname.startsWith("/admin/")) return <Outlet />;
+  const screen = useScreen();
+  // The admin has its own chrome; a bare page draws the whole screen.
+  if (pathname === "/admin" || pathname.startsWith("/admin/") || screen.bare) return <Outlet />;
   return (
     <>
       <SiteShell changelogVersion={meta.changelogVersion}>

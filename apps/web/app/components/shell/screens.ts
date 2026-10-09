@@ -15,6 +15,8 @@ export interface Screen {
   name?: string;
   /** The page draws its own bottom toolbar instead of the tab bar (articles). */
   toolbar?: boolean;
+  /** The page draws the whole screen itself: no sidebar, tab bar or column around it (a module's full-screen player). */
+  bare?: boolean;
 }
 
 /** What the current page declares: route handles merged from the root down, the deepest route winning. */
