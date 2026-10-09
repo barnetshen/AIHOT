@@ -79,6 +79,14 @@ docker compose run --rm setup && docker compose up -d
 
 下面按时间从新到旧列出每次更新要注意的事。
 
+#### 日报周报视频播报（2026 年 10 月 8 日）
+
+这个站启用了模块 `report-videos`：每期日报和周报出刊后自动生成一条竖屏视频播报，主播口播每条要闻，画面配新闻自带的视频或配图，在 `/videos` 看。说明见 [`modules/report-videos/README.md`](../modules/report-videos/README.md)。
+
+- 迁移 `0058_report_videos` 新建 `report_videos` 表，不改已有数据。
+- worker 所在的机器要有 `ffmpeg`，还要有约 170 MB 的免费语音模型：Docker 镜像构建时都会装好（重新 `docker compose build`，构建机要能访问 GitHub）；不用 Docker 的，先装好 ffmpeg，并运行一次 `node modules/report-videos/scripts/fetch-voice.ts`。
+- 视频文件写在数据目录的 `videos/` 下，最多保留 14 期日报和 8 期周报的视频，一般不超过几百 MB。
+
 #### 原帖展示与引擎同步（2026 年 10 月 6 日）
 
 没有新增必填环境变量或数据库迁移。自己维护 `site/site.ts` 的站点需补上 `REPORTS.quiet`，可对照示范配置：日报时段内有资料经过评判、但没有新大事时照常出刊，用这两句做标题与导语；导语的 `{start}`、`{end}` 是时段起止。没有任何资料经过评判仍算采集或判断失败，不伪装成平静的一天。
@@ -225,10 +233,11 @@ docker compose logs -f --tail 100 api worker web
 
 ## 不用 Docker
 
-需要 Node.js 24.11 以上和 PostgreSQL 16 或 17，系统用 Linux 或 macOS；Windows 上请在 WSL2 里运行，或者用上面的 Docker 方式。
+需要 Node.js 24.11 以上、PostgreSQL 16 或 17，以及生成视频播报用的 `ffmpeg` 和语音模型（见 [`modules/report-videos`](../modules/report-videos/README.md)），系统用 Linux 或 macOS；Windows 上请在 WSL2 里运行，或者用上面的 Docker 方式。
 
 ```bash
 npm ci
+node modules/report-videos/scripts/fetch-voice.ts   # 视频播报的语音模型，约 170 MB
 node scripts/init-env.ts --llm-key <你的模型 API Key>
 createdb myhot
 ```
