@@ -5,9 +5,9 @@ import { ITEM_COPY } from "@aihot/site";
  * warm red, solid ones (70+) in the accent, the rest as quiet text. The score itself is unchanged.
  */
 const TIERS = [
-  { min: 85, className: "bg-hot/10 text-hot ring-hot/25" },
-  { min: 70, className: "bg-accent-soft text-accent ring-accent/20" },
-  { min: 0, className: "text-ink-4 ring-line-soft" },
+  { min: 85, className: "bg-hot/10 text-hot ring-hot/20" },
+  { min: 70, className: "bg-accent-soft text-accent ring-accent/15" },
+  { min: 0, className: "bg-bg-sunk text-ink-4 ring-line-soft" },
 ];
 
 /** The score readers see: none when the site keeps scores from them. */

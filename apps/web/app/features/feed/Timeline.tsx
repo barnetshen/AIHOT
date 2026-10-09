@@ -31,21 +31,22 @@ function fromResponse(r: TimelineResponse): ListState {
   return { version: 2, cards: r.cards, nextCursor: r.nextCursor, dayCounts: r.dayCounts, collapsed: [], batches: 1 };
 }
 
-/** Sticky day header under the phone bar: a quiet row on desktop, a grey full-width bar on phones. */
+/** Sticky day header under the phone bar: a quiet row on desktop, a frosted full-width bar on phones. */
 export function DayHeader({ day, today, count, collapsed, onToggle, aside }: { day: string; today: string; count: number | null; collapsed?: boolean; onToggle?: () => void; aside?: React.ReactNode }) {
   const date = monthDay(day);
   const weekday = beijingWeekday(day);
   const short = weekdayShort(day);
   const phoneRow = (
     <>
-      <span className="text-[14px] font-bold text-ink">{day === today ? "今天" : date}</span>
+      {day === today && <span aria-hidden="true" className="bg-brand size-1.5 rounded-full shadow-[0_0_0_3px_var(--accent-soft)]" />}
+      <span className="text-[15px] font-bold tracking-[-0.01em] text-ink">{day === today ? "今天" : date}</span>
       {day === today && <span className="text-[12.5px] text-ink-4">{date}</span>}
       <span className="text-[12.5px] text-ink-4">{short}</span>
       <span className="ml-auto flex items-center gap-1 text-[12.5px] text-ink-4">
         {aside}
         {count !== null && (
-          <span>
-            <span className="num">{count}</span> 条
+          <span className="rounded-full bg-surface px-2 py-0.5 ring-1 ring-line-soft dark:bg-raised">
+            <span className="num font-semibold text-ink-2">{count}</span> 条
           </span>
         )}
         {onToggle && <IconChevronDown size={15} className={`transition-transform duration-200 ${collapsed ? "-rotate-90" : ""}`} />}
@@ -53,7 +54,7 @@ export function DayHeader({ day, today, count, collapsed, onToggle, aside }: { d
     </>
   );
   return (
-    <div className="bleed sticky top-[var(--bar-h)] z-20 bg-daybar lg:mx-0 lg:bg-bg lg:px-0">
+    <div className="bleed sticky top-[var(--bar-h)] z-20 bg-daybar/85 backdrop-blur-xl lg:mx-0 lg:bg-bg lg:px-0 lg:backdrop-blur-none">
       {/* Phones: a full-width day bar; on the timeline the whole bar folds the day. */}
       {onToggle ? (
         <button type="button" onClick={onToggle} aria-expanded={!collapsed} aria-label={`${collapsed ? "展开" : "收起"}${date}`} className="flex h-11 w-full items-center gap-2 text-left lg:hidden">
@@ -65,11 +66,11 @@ export function DayHeader({ day, today, count, collapsed, onToggle, aside }: { d
       {/* Desktop: date text shares the page's left edge, regardless of how many digits it has. */}
       <div className="hidden h-11 items-center gap-3 lg:flex">
         {onToggle ? (
-          <button type="button" onClick={onToggle} aria-expanded={!collapsed} className="whitespace-nowrap text-left text-[18px] font-semibold leading-6 text-ink">
+          <button type="button" onClick={onToggle} aria-expanded={!collapsed} className="whitespace-nowrap text-left text-[19px] font-bold leading-6 tracking-[-0.01em] text-ink">
             {date}
           </button>
         ) : (
-          <time dateTime={day} className="whitespace-nowrap text-[18px] font-semibold leading-6 text-ink">{date}</time>
+          <time dateTime={day} className="whitespace-nowrap text-[19px] font-bold leading-6 tracking-[-0.01em] text-ink">{date}</time>
         )}
         {onToggle ? (
           <button
@@ -105,17 +106,17 @@ export function TimelineSlot({ at, children, fresh = false, delay = 0, dataKey }
   return (
     <li
       data-card-key={dataKey}
-      className={`group/slot bleed touch:has-[a:active]:bg-bg-sunk/70 lg:mx-0 lg:px-0 lg:touch:has-[a:active]:bg-transparent ${fresh ? "animate-fade-up" : ""}`}
+      className={`group/slot pb-2.5 lg:pb-0 ${fresh ? "animate-fade-up" : ""}`}
       style={fresh ? { animationDelay: `${delay}ms` } : undefined}
     >
-      {/* Phones: the row without the rail (the item shows its time); a hairline between rows. */}
-      <div className="grid grid-cols-[minmax(0,1fr)] border-b border-line-soft py-3.5 group-last/slot:border-b-0 lg:grid-cols-[64px_22px_minmax(0,1fr)] lg:border-b-0 lg:py-0 lg:pb-3 lg:group-last/slot:pb-0">
+      {/* Phones: a card without the rail (the item shows its time), pressing in a little under the finger. */}
+      <div className="grid grid-cols-[minmax(0,1fr)] rounded-card bg-surface px-4 py-3.5 shadow-[var(--shadow-card)] ring-1 ring-line-soft transition-transform duration-150 ease-[var(--ease-out-quart)] touch:has-[a:active]:scale-[0.985] lg:grid-cols-[64px_22px_minmax(0,1fr)] lg:rounded-none lg:bg-transparent lg:p-0 lg:pb-3 lg:shadow-none lg:ring-0 lg:group-last/slot:pb-0 lg:touch:has-[a:active]:scale-100">
         <time dateTime={at} className="mono hidden text-ink-3 lg:block lg:pt-[17px] lg:text-[12.5px] lg:font-semibold lg:leading-6">
           {beijingTime(at)}
         </time>
         <span aria-hidden="true" className="relative hidden lg:block">
           <span className="absolute -bottom-[41px] left-[10.5px] top-[29px] w-px bg-line-strong group-last/slot:hidden" />
-          <span className="absolute left-[7.5px] top-[25.5px] size-[7px] rounded-full bg-accent shadow-[0_0_0_4px_var(--bg)] transition-transform duration-300 group-hover/slot:scale-[1.15]" />
+          <span className="bg-brand absolute left-[7px] top-[25px] size-2 rounded-full shadow-[0_0_0_4px_var(--bg)] transition-[transform,box-shadow] duration-300 group-hover/slot:scale-125 group-hover/slot:shadow-[0_0_0_4px_var(--bg),0_0_0_7px_var(--accent-soft)]" />
         </span>
         {children}
       </div>

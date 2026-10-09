@@ -113,6 +113,14 @@ export interface TopicPagePart {
   news: (data: unknown) => string[];
 }
 
+/** A module's parts of the plain home page (routes/home.tsx). */
+export interface HomePart {
+  /** Above the hot topics where the page has one column (phones, narrower desktops). */
+  Top?: ComponentType;
+  /** The head of the side column on wide desktops. */
+  Rail?: ComponentType;
+}
+
 export interface WebModule {
   /** Its folder under modules/. */
   name: string;
@@ -147,6 +155,7 @@ export interface WebModule {
   };
   agent?: Part<AgentPart>;
   topicPage?: Part<TopicPagePart>;
+  home?: Part<HomePart>;
   /** Paths of the marks it serves that are drawn in white, for a dark tile (components/BrandMark.tsx). */
   darkMarks?: string[];
   /** The starred page (routes/starred.tsx): buttons ahead of 导入文件 that bring stars in from elsewhere, each resolving to the line it reports. */

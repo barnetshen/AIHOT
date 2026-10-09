@@ -73,7 +73,18 @@ export default function MorePage() {
   return (
     <div className="mx-auto max-w-[var(--page-max-reading)] pb-8">
       <PhoneBar title="我的" large />
-      <h1 className="hidden pb-4 pt-1 text-[22px] font-bold text-ink lg:block">我的</h1>
+      <h1 className="hidden pb-4 pt-1 text-[28px] font-bold tracking-[-0.02em] text-ink lg:block">我的</h1>
+      {/* Whose app this is: the mark, the name and what it does, over a soft wash of the brand colour. */}
+      <section className="relative mb-2 overflow-hidden rounded-sheet bg-surface p-5 shadow-[var(--shadow-card)] ring-1 ring-line-soft dark:bg-raised">
+        <span aria-hidden="true" className="bg-brand absolute -right-14 -top-24 size-56 rounded-full opacity-20 blur-3xl" />
+        <div className="relative flex items-center gap-3.5">
+          <img src="/icon-192.png" alt="" className="size-14 rounded-panel shadow-[var(--shadow-thumb)]" />
+          <div className="min-w-0">
+            <div className="text-[19px] font-bold tracking-[-0.01em] text-ink">{SITE.name}</div>
+            <div className="mt-0.5 line-clamp-2 text-[13px] leading-relaxed text-ink-4">{SITE.description}</div>
+          </div>
+        </div>
+      </section>
       <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-4 2xl:grid-cols-3">
         <Group>
           <RowLink row={{ to: "/starred", label: "收藏", icon: <IconBookmark size={20} />, detail: here && starred.length > 0 ? <span className="num">{starred.length}</span> : undefined }} />

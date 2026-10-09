@@ -1,12 +1,13 @@
-// A small floating card on the home page and the report pages that opens the broadcast: the issue's own on
-// a report page, the newest daily's on the home page and the latest daily, the newest weekly's on the
-// latest weekly. A poster; on a wide screen the issue's headline opens beside it for its first seconds
+// A small floating card on the report pages that opens the broadcast: the issue's own on a report page,
+// the newest daily's on the latest daily, the newest weekly's on the latest weekly (the home page has
+// the broadcasts in its own strip, web/home.tsx). A poster; on a wide screen the issue's headline opens beside it for its first seconds
 // and under the pointer. It slides mostly out of the way while the page scrolls, and closing it hides it
 // until a newer broadcast comes out. Drawn only in the browser, from /api/videos.
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router";
 import { IconClose } from "@aihot/web/components/icons";
 import type { VideoEntry, VideosResponse } from "../types.ts";
+import { clock, entries, playerUrl, useVideos } from "./shared.ts";
 
 const CLOSED_KEY = "videos.bubble.closed";
 /** How long after the page stops scrolling the card comes back. */
@@ -25,12 +26,8 @@ const STYLES = `
 }
 `;
 
-/** Fetched once a visit: the list changes a few times a day. */
-let loaded: Promise<VideosResponse | null> | null = null;
-const load = () => (loaded ??= fetch("/api/videos").then((r) => (r.ok ? (r.json() as Promise<VideosResponse>) : null), () => null));
-
 function pick(videos: VideosResponse, pathname: string): VideoEntry | null {
-  if (pathname === "/" || pathname === "/daily") return videos.daily[0] ?? null;
+  if (pathname === "/daily") return videos.daily[0] ?? null;
   if (pathname === "/weekly") return videos.weekly[0] ?? null;
   return [...videos.daily, ...videos.weekly].find((v) => v.page === pathname) ?? null;
 }
@@ -38,11 +35,9 @@ function pick(videos: VideosResponse, pathname: string): VideoEntry | null {
 /** The newest broadcast: closing the card lasts until it changes. */
 const newest = (videos: VideosResponse) => [...videos.daily, ...videos.weekly].reduce<VideoEntry | null>((a, v) => (!a || v.renderedAt > a.renderedAt ? v : a), null)?.video ?? "";
 
-const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
-
 export function VideoBubble() {
   const { pathname } = useLocation();
-  const [videos, setVideos] = useState<VideosResponse | null>(null);
+  const videos = useVideos();
   const [closed, setClosed] = useState<string | null>(null);
   const [tucked, setTucked] = useState(false);
   const [peek, setPeek] = useState(true);
@@ -53,7 +48,6 @@ export function VideoBubble() {
     } catch {
       setClosed("");
     }
-    void load().then(setVideos);
     const t = setTimeout(() => setPeek(false), PEEK_MS);
     return () => clearTimeout(t);
   }, []);
@@ -84,11 +78,11 @@ export function VideoBubble() {
       // storage blocked: hidden until the page reloads
     }
   };
-  const to = `/videos?${new URLSearchParams({ ...(v.kind === "weekly" ? { kind: "weekly" } : {}), v: v.key })}`;
+  const to = playerUrl(v);
   const kind = v.kind === "daily" ? "日报" : "周报";
   return (
     <div
-      className={`fixed right-3 z-30 bottom-[calc(64px+env(safe-area-inset-bottom))] transition-transform duration-500 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none lg:bottom-[5.25rem] lg:right-6 ${tucked ? "translate-x-[calc(100%-1.25rem)]" : ""}`}
+      className={`fixed right-3 z-30 bottom-[calc(84px+env(safe-area-inset-bottom))] transition-transform duration-500 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none lg:bottom-[5.25rem] lg:right-6 ${tucked ? "translate-x-[calc(100%-1.25rem)]" : ""}`}
     >
       <style>{STYLES}</style>
       <div className="vb-in group relative">
@@ -115,7 +109,7 @@ export function VideoBubble() {
                 {kind}视频播报
               </span>
               <span className="mt-1 line-clamp-2 text-[13.5px] font-semibold leading-snug text-ink">{v.headline ?? v.title}</span>
-              <span className="mt-1 block text-[11.5px] text-ink-3">{v.period} · {v.chapters.filter((c) => c.rank).length} 条要闻</span>
+              <span className="mt-1 block text-[11.5px] text-ink-3">{v.period} · {entries(v)} 条要闻</span>
             </span>
           </span>
         </Link>

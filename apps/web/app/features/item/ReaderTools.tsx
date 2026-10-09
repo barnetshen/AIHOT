@@ -68,9 +68,9 @@ export function ReaderToolbar({ item, originalUrl, originalLabel, onOutline, onS
   return (
     <nav
       aria-label="阅读工具"
-      className={`fixed inset-x-0 bottom-0 z-40 bg-surface/90 pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] shadow-[0_-1px_0_var(--line)] backdrop-blur-xl backdrop-saturate-150 transition-transform duration-300 ease-[var(--ease-out-quart)] lg:hidden ${hidden ? "translate-y-full" : ""}`}
+      className={`pointer-events-none fixed inset-x-0 bottom-0 z-40 pb-[max(10px,env(safe-area-inset-bottom))] pl-[max(12px,env(safe-area-inset-left))] pr-[max(12px,env(safe-area-inset-right))] transition-transform duration-300 ease-[var(--ease-out-quart)] lg:hidden ${hidden ? "translate-y-[calc(100%+12px)]" : ""}`}
     >
-      <div className={`mx-auto grid h-[50px] max-w-[640px] ${onOutline ? "grid-cols-4" : "grid-cols-3"}`}>
+      <div className={`glass pointer-events-auto mx-auto grid h-[56px] max-w-[460px] rounded-sheet px-1 shadow-[var(--shadow-dock)] ring-1 ring-line-soft ${onOutline ? "grid-cols-4" : "grid-cols-3"}`}>
         <Tool
           pressed={star.on}
           onClick={star.toggle}
