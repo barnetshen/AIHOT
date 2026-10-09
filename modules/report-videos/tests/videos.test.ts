@@ -2,8 +2,9 @@
 // not a playable vertical MP4 with its narration; a screen is not held while its narration is read; the
 // news' own video or picture is not shown on its screen, or is taken from a source that does not allow
 // its full text; an unchanged issue is rendered again on every run; a withdrawn citation stays in the
-// video or the narration, or its old file stays reachable; players cannot seek (no byte ranges); a
-// weekly's themes are not told; a file name outside the folder is served; a failed render keeps showing
+// video or the narration, or its old file stays reachable; players cannot seek (no byte ranges); the
+// chapters do not point at where each entry's screen begins, or its story bar does not fill while it is
+// read; a weekly's themes are not told; a file name outside the folder is served; a failed render keeps showing
 // a changed issue's old video, or fails without the owner hearing of it.
 import { tag } from "../../../tests/setup.ts";
 import assert from "node:assert/strict";
@@ -101,14 +102,16 @@ async function citation(title: string, opts: { video?: boolean; picture?: boolea
 
 const probe = (file: string) => JSON.parse(execFileSync("ffprobe", ["-v", "error", "-print_format", "json", "-show_entries", "stream=codec_type,codec_name,width,height:format=duration", file], { encoding: "utf8" }));
 const fileOf = (url: string) => path.join(VIDEO_DIR, url.split("/").at(-1)!);
-/** How bright the box is at a moment: the test pattern and the picture are bright, the cover's background dark. */
-async function boxBrightness(file: string, seconds: number) {
+/** How bright a region of the video is at a moment. */
+async function brightness(file: string, seconds: number, region: { left: number; top: number; width: number; height: number }) {
   const png = execFileSync("ffmpeg", ["-v", "error", "-ss", String(seconds), "-i", file, "-frames:v", "1", "-f", "image2pipe", "-vcodec", "png", "-"]);
   // stats() reads the image it was given, not the pipeline's output: crop first.
-  const box = await sharp(png).extract({ left: CLIP_BOX.x, top: CLIP_BOX.y, width: CLIP_BOX.width, height: CLIP_BOX.height }).toBuffer();
-  const { channels } = await sharp(box).stats();
+  const { channels } = await sharp(await sharp(png).extract(region).toBuffer()).stats();
   return channels.slice(0, 3).reduce((n, c) => n + c.mean, 0) / 3;
 }
+/** The box's: the test pattern and the picture are bright, the cover's background dark. */
+const boxBrightness = (file: string, seconds: number) =>
+  brightness(file, seconds, { left: CLIP_BOX.x, top: CLIP_BOX.y, width: CLIP_BOX.width, height: CLIP_BOX.height });
 
 test("a body's first playable file is the news' video, and text is read as it is meant", () => {
   assert.equal(videoSource(`<video src="https://a.example/v.mp4"></video>`), "https://a.example/v.mp4");
@@ -141,15 +144,23 @@ test("a daily's broadcast reads every screen, shows the news' video and picture,
   assert.deepEqual(info.streams.map((s: { codec_type: string }) => s.codec_type).sort(), ["audio", "video"], "a picture and its narration");
   assert.deepEqual(info.streams.find((s: { codec_type: string }) => s.codec_type === "video"), { codec_type: "video", codec_name: "h264", width: 1080, height: 1920 });
   assert.ok(Math.abs(Number(info.format.duration) - video.durationSeconds) <= 1, "the listed length is the file's");
-  // Each screen fades in (all but the first), is held while it is read and a pause after, and fades out
-  // over the next one.
-  const shots = read.map((text, i) => (i ? 0.5 : 0) + Math.max(1, [...text].length / 20) + 0.6 + 0.5);
+  // Each screen fades in (the first comes in a moment after the start), is held while it is read and a
+  // pause after, and fades out over the next one.
+  const shots = read.map((text, i) => (i ? 0.5 : 0.3) + Math.max(1, [...text].length / 20) + 0.6 + 0.5);
   const starts = shots.map((_, i) => shots.slice(0, i).reduce((n, s) => n + s, 0) - 0.5 * i);
   assert.ok(Math.abs(Number(info.format.duration) - (starts.at(-1)! + shots.at(-1)!)) < 0.2, "the video lasts as long as it is read");
   assert.ok(existsSync(fileOf(video.poster)), "the poster is written with it");
-  assert.ok(await boxBrightness(fileOf(video.video), starts[1]! + 1) > 60, "the lead's video plays in its box");
-  assert.ok(await boxBrightness(fileOf(video.video), starts[2]! + 1) > 150, "the second's picture fills its box");
+  assert.ok(await boxBrightness(fileOf(video.video), starts[1]! + 1.5) > 60, "the lead's video plays in its box");
+  assert.ok(await boxBrightness(fileOf(video.video), starts[2]! + 1.5) > 150, "the second's picture fills its box");
   assert.ok(await boxBrightness(fileOf(video.video), 1) < 60, "the cover has none");
+  // The chapters: one per entry, where its screen begins (the cover and the closing screen have none).
+  assert.deepEqual(video.chapters.map((c) => [c.rank, c.at]), [1, 2, 3].map((rank) => [rank, Math.round(starts[rank]! * 10) / 10]));
+  assert.equal(video.chapters[0]!.title, lead.title);
+  // The third entry's segment of the story bar (the right third of it) fills while it is read.
+  const segment = { left: 88 + Math.round((2 * (904 - 20)) / 3 + 20), top: 60, width: Math.round((904 - 20) / 3), height: 6 };
+  const early = await brightness(fileOf(video.video), starts[3]! + 0.8, segment);
+  const late = await brightness(fileOf(video.video), starts[3]! + shots[3]! - 0.8, segment);
+  assert.ok(late > early + 40, `the story bar fills (${early.toFixed(0)} → ${late.toFixed(0)})`);
 
   assert.ok(!(await refreshVideos()).rendered.includes(`daily/${DAILY}`), "an unchanged issue keeps its video");
 

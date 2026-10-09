@@ -17,11 +17,20 @@ export interface VideoEntry {
   /** Screens that play a video of the news itself, and screens that show its picture. */
   clips: number;
   pictures: number;
+  /** Where each entry's screen begins, in order. */
+  chapters: Chapter[];
   video: string;
   poster: string;
   /** The issue's page. */
   page: string;
   renderedAt: string;
+}
+
+/** Where an entry's screen begins in its broadcast: seconds from the start; `rank` is null for the headlines. */
+export interface Chapter {
+  at: number;
+  rank: number | null;
+  title: string;
 }
 
 /** Newest first by kind. */

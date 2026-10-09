@@ -15,7 +15,7 @@ import type { NewsMedia } from "./media.ts";
 import { VOICE } from "./voice.ts";
 
 /** Bump when the drawing, the timing or the wording changes: every video is rendered again. */
-export const VIDEO_TEMPLATE_VERSION = `video-2026-10-08.4+${VOICE}`;
+export const VIDEO_TEMPLATE_VERSION = `video-2026-10-09.1+${VOICE}`;
 
 export interface Entry {
   title: string;
