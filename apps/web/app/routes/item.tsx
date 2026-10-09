@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Await, isRouteErrorResponse, Link, useAsyncError, useLoaderData, useNavigate, useRevalidator, type ClientLoaderFunctionArgs } from "react-router";
 import type { Route } from "./+types/item";
 import type { FeedItemSummary, SiteItemDetail } from "@aihot/contracts/site";
@@ -22,7 +22,7 @@ import { ArticleBody } from "../features/item/ArticleBody";
 import { ActionsSheet, ReaderToolbar, type ActionRow } from "../features/item/ReaderTools";
 import { OutlineSheet, scrollToAnchor } from "../components/ui/OutlineSheet";
 import { takePreview } from "../features/item/preview";
-import { IconArrowLeft, IconCopy, IconDownload, IconExternal, IconImage, IconMenu, IconMore, IconShare } from "../components/icons";
+import { IconArrowLeft, IconCopy, IconDownload, IconExternal, IconImage, IconMenu, IconMore, IconShare, IconSparkles } from "../components/icons";
 import { BarButton, PhoneBar } from "../components/shell/PhoneBar";
 import { isPhone, type Screen } from "../components/shell/screens";
 
@@ -75,6 +75,21 @@ export function meta({ loaderData }: Route.MetaArgs) {
 }
 
 /** A 2px accent line across the top that follows long bodies. */
+/** The summary set apart as a card, a stroke of the brand colour down its side. */
+const SUMMARY_CARD = "relative overflow-hidden rounded-panel bg-surface px-5 py-4 shadow-[var(--shadow-card)] ring-1 ring-line-soft dark:bg-raised";
+
+function SummaryLabel({ children }: { children: ReactNode }) {
+  return (
+    <>
+      <span aria-hidden="true" className="bg-brand absolute inset-y-0 left-0 w-[3px]" />
+      <div className="mb-1.5 flex items-center gap-1.5 text-[12px] font-semibold text-accent">
+        <IconSparkles size={13} />
+        {children}
+      </div>
+    </>
+  );
+}
+
 function ReadingProgress() {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -148,7 +163,7 @@ function useToast(): [string | null, (text: string) => void] {
 function Toast({ text }: { text: string | null }) {
   if (!text) return null;
   return (
-    <div role="status" className="fixed bottom-[calc(80px+env(safe-area-inset-bottom))] left-1/2 z-50 -translate-x-1/2 rounded-full bg-ink px-4 py-2 text-[13px] text-bg shadow-[var(--shadow-pop)] lg:bottom-8">
+    <div role="status" className="fixed bottom-[calc(84px+env(safe-area-inset-bottom))] left-1/2 z-50 -translate-x-1/2 rounded-full bg-ink px-4 py-2 text-[13px] text-bg shadow-[var(--shadow-pop)] lg:bottom-8">
       {text}
     </div>
   );
@@ -191,9 +206,9 @@ function ItemPreview({ preview }: { preview: FeedItemSummary }) {
         </div>
         {!isX && <h1 data-page-title="" className="text-[26px] font-bold leading-[1.38] tracking-[-0.01em] text-ink">{preview.title}</h1>}
         {preview.summary && (
-          <section className={isX ? "mt-4" : "mt-7"}>
-            <div className="mb-2 text-[12px] font-semibold text-accent">{isX && preview.summary.replace(/\s+/g, " ").trim() === preview.title ? "原文" : "AI 导读"}</div>
-            <p className="text-[18px] leading-[1.7] text-ink">{preview.summary}</p>
+          <section className={`${SUMMARY_CARD} ${isX ? "mt-4" : "mt-6"}`}>
+            <SummaryLabel>{isX && preview.summary.replace(/\s+/g, " ").trim() === preview.title ? "原文" : "AI 导读"}</SummaryLabel>
+            <p className="text-[17px] leading-[1.75] text-ink">{preview.summary}</p>
           </section>
         )}
         {preview.reason && (
@@ -336,7 +351,7 @@ function ItemView({ item }: { item: SiteItemDetail }) {
         href={item.links.original}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-full border border-line-strong bg-surface px-3.5 text-[12.5px] font-medium text-ink-2 transition-colors hover:border-ink-4 hover:text-ink"
+        className="inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-full bg-accent px-3.5 text-[12.5px] font-semibold text-accent-contrast shadow-[0_4px_12px_-3px_var(--brand-glow)] transition-[filter,transform] hover:brightness-110 active:scale-[0.97]"
       >
         {originalLabel} <IconExternal size={13} />
       </a>
@@ -476,9 +491,9 @@ function ItemView({ item }: { item: SiteItemDetail }) {
           {!isX && item.originalTitle && <p className="mt-2.5 text-[14px] leading-relaxed text-ink-4">{item.originalTitle}</p>}
 
           {item.summary && (!isX || item.summary.replace(/\s+/g, " ").trim() !== item.title) && (
-            <section className={isX ? "mt-4" : "mt-7 xl:mt-8"}>
-              <div className="mb-2 text-[12px] font-semibold text-accent">{summaryOnly ? "摘要" : "AI 导读"}</div>
-              <p className="text-[18px] leading-[1.7] text-ink xl:text-[20px] xl:leading-[1.7]">{item.summary}</p>
+            <section className={`${SUMMARY_CARD} ${isX ? "mt-4" : "mt-6 xl:mt-8"}`}>
+              <SummaryLabel>{summaryOnly ? "摘要" : "AI 导读"}</SummaryLabel>
+              <p className="text-[17px] leading-[1.75] text-ink lg:text-[18px] xl:text-[19px]">{item.summary}</p>
             </section>
           )}
 

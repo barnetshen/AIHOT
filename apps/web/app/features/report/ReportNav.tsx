@@ -101,20 +101,20 @@ function ArchiveGroup({ g, kind, current, initiallyOpen }: {
 export function ReportPhoneNav({ kind, index, current, today }: { kind: ReportKind; index: ReportNavigationEntry[]; current: string | null; today: string }) {
   const recent = index.slice(0, 3);
   const earlier = kind === "daily" ? "/daily/archive" : "#report-history";
-  const chip = "inline-flex h-11 shrink-0 items-center rounded-full border px-4 text-[13px] transition-colors";
+  const chip = "inline-flex h-10 shrink-0 items-center rounded-full border px-4 text-[13px] transition-[background-color,transform] active:scale-95";
   if (recent.length === 0) return null;
   return (
     <nav aria-label={`最近的${KIND_LABEL[kind]}`} className="scrollbar-none bleed flex gap-2 overflow-x-auto pb-1 pt-1.5 lg:hidden">
       {recent.map((e) => {
         const on = e.key === current;
         return (
-          <IntentLink key={e.key} to={reportPath(kind, e.key)} aria-current={on ? "page" : undefined} className={`${chip} ${on ? "border-ink bg-ink font-semibold text-bg" : "border-line-strong bg-surface text-ink-2 active:bg-bg-sunk"}`}>
+          <IntentLink key={e.key} to={reportPath(kind, e.key)} aria-current={on ? "page" : undefined} className={`${chip} ${on ? "border-transparent bg-accent font-semibold text-accent-contrast shadow-[0_4px_12px_-2px_var(--brand-glow)]" : "border-line bg-surface text-ink-2 active:bg-bg-sunk"}`}>
             {chipLabel(kind, e.key, index, today)}
           </IntentLink>
         );
       })}
       {index.length > 3 && (
-        <IntentLink to={earlier} viewTransition={kind === "daily"} className={`${chip} border-line-strong bg-surface text-ink-2 active:bg-bg-sunk`}>
+        <IntentLink to={earlier} viewTransition={kind === "daily"} className={`${chip} border-line bg-surface text-ink-2 active:bg-bg-sunk`}>
           更早
         </IntentLink>
       )}

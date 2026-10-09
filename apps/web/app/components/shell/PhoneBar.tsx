@@ -57,7 +57,7 @@ export function PhoneBar({ back, title, large = false, sub, leading, center, act
       </header>
       {large && title && (
         <div className="pb-3 pt-0.5 lg:hidden">
-          <h1 data-page-title="" className="text-[30px] font-bold leading-[1.25] tracking-[-0.01em] text-ink">
+          <h1 data-page-title="" className="text-[30px] font-bold leading-[1.25] tracking-[-0.02em] text-ink">
             {title}
           </h1>
           {sub && <div className="mt-1 text-[12.5px] leading-relaxed text-ink-4">{sub}</div>}

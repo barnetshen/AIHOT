@@ -101,7 +101,7 @@ export default function TopicsPage() {
     <div className="pb-10">
       <PhoneBar back={{ to: "/more", label: "我的" }} title="主题" />
       <header className="pb-2 pt-3 lg:pt-1">
-        <h1 data-page-title="" className="text-[24px] font-semibold leading-[1.3] text-ink">{subjectAfter("按主题看")}</h1>
+        <h1 data-page-title="" className="text-[28px] font-bold leading-[1.25] tracking-[-0.02em] text-ink">{subjectAfter("按主题看")}</h1>
         <p className="mt-1.5 text-[13px] leading-relaxed text-ink-3">
           {`按${groups.map((g) => g.name).join("、")}浏览 `}
           <span className="num">{topics.length}</span> 个主题，追踪最新精选与重要进展。

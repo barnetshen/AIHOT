@@ -185,7 +185,7 @@ export default function FeedbackPage() {
     <PhoneBar back={{ to: "/more", label: "我的" }} title="意见反馈" />
     <ReadingLayout aside={<FeedbackAside />}>
       <header>
-        <h1 data-page-title="" className="text-[24px] font-semibold leading-[1.3] text-ink">说说你的想法</h1>
+        <h1 data-page-title="" className="text-[28px] font-bold leading-[1.25] tracking-[-0.02em] text-ink">说说你的想法</h1>
         <p className="mt-2 text-[14.5px] leading-relaxed text-ink-3">{SITE.feedbackLead}</p>
       </header>
 

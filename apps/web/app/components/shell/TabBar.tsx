@@ -12,7 +12,8 @@ const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayout
 const COLUMNS: Record<number, string> = { 4: "grid-cols-4", 5: "grid-cols-5" };
 
 /**
- * The phone tab bar (below lg). A page lights the tab it declares; pages reached from several tabs keep
+ * The phone tab bar (below lg): a frosted dock floating above the bottom edge, the lit tab's icon in a
+ * soft pill. A page lights the tab it declares; pages reached from several tabs keep
  * the tab the reader came from. Tapping the tab you are on goes back to its first screen (sliding back,
  * as the bar's back button does); on that screen it scrolls to the top, and at the top it reloads the
  * page's data. Articles bring their own toolbar instead.
@@ -36,9 +37,9 @@ export function TabBar({ changelogVersion }: { changelogVersion: string | null }
   return (
     <nav
       aria-label="底部导航"
-      className="fixed inset-x-0 bottom-0 z-40 bg-surface/90 pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] shadow-[0_-1px_0_var(--line)] backdrop-blur-xl backdrop-saturate-150 lg:hidden"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-40 pb-[max(10px,env(safe-area-inset-bottom))] pl-[max(12px,env(safe-area-inset-left))] pr-[max(12px,env(safe-area-inset-right))] lg:hidden"
     >
-      <div className={`mx-auto grid h-[50px] max-w-[640px] ${COLUMNS[items.length]}`}>
+      <div className={`glass pointer-events-auto mx-auto grid h-[60px] max-w-[460px] rounded-sheet px-1 shadow-[var(--shadow-dock)] ring-1 ring-line-soft ${COLUMNS[items.length]}`}>
         {items.map((t) => {
           const on = t.key === active;
           const Icon = t.icon;
@@ -60,11 +61,13 @@ export function TabBar({ changelogVersion }: { changelogVersion: string | null }
                   void revalidator.revalidate();
                 }
               }}
-              className={`relative flex flex-col items-center justify-center gap-[2px] text-[10.5px] transition-colors ${on ? "font-semibold text-accent" : "text-ink-3 active:text-ink"}`}
+              className={`group relative flex flex-col items-center justify-center gap-[3px] text-[10.5px] transition-colors ${on ? "font-semibold text-accent" : "text-ink-4 active:text-ink"}`}
             >
-              <Icon size={23} />
-              <span>{t.label}</span>
-              {dot && t.changelog && <span className="absolute left-[calc(50%+9px)] top-[7px] size-1.5 rounded-full bg-hot" aria-label="有新的更新" />}
+              <span className={`flex h-7 w-12 items-center justify-center rounded-full transition-[background-color,transform] duration-300 ease-[var(--ease-out-quart)] group-active:scale-90 ${on ? "bg-accent-soft" : ""}`}>
+                <Icon size={22} />
+              </span>
+              <span className="leading-none">{t.label}</span>
+              {dot && t.changelog && <span className="absolute left-[calc(50%+11px)] top-[9px] size-1.5 rounded-full bg-hot ring-2 ring-surface" aria-label="有新的更新" />}
             </Link>
           );
         })}

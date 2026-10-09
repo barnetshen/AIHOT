@@ -4,6 +4,7 @@
 // its chapters (one per news entry) open in a sheet, from the chip over the caption or the column on the
 // right (← → step through them on a keyboard). Browsers only let a page start videos by itself without
 // sound, so they start muted until the reader turns the sound on, which then stays on for the feed.
+// The next broadcast is announced over the last seconds of one; the last ends on a card.
 // Motion follows the reader's reduced-motion setting.
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { Link, useLoaderData, useSearchParams } from "react-router";
@@ -16,7 +17,7 @@ import { IconArrowLeft, IconChevronDown, IconDoc, IconDownload, IconList, IconSh
 import type { Screen } from "@aihot/web/components/shell/screens";
 import type { Chapter, VideoEntry, VideoKind, VideosResponse } from "../types.ts";
 
-export const handle: Screen = { tab: "daily", name: "视频播报", bare: true };
+export const handle: Screen = { tab: "videos", name: "视频播报", bare: true };
 export { pageHeaders as headers } from "@aihot/web/lib/api.server";
 export const { clientLoader, shouldRevalidate } = pageReuse<typeof loader>();
 
@@ -44,6 +45,8 @@ const HOLD_MS = 420;
 /** A press that moves this far is a swipe, not a tap. */
 const SLOP = 10;
 const HINT_KEY = "videos.swiped";
+/** Seconds before the end the next broadcast is announced. */
+const UP_NEXT = 5;
 
 const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 const chapterAt = (chapters: Chapter[], t: number) => chapters.findLastIndex((c) => c.at <= t + 0.05);
@@ -57,6 +60,8 @@ const STYLES = `
   @keyframes vp-hint { 0%,100% { transform: translateY(0); opacity: .9 } 50% { transform: translateY(-14px); opacity: .5 } }
   @keyframes vp-glow { 0%,100% { box-shadow: 0 0 0 0 rgba(255,255,255,.35) } 50% { box-shadow: 0 0 0 7px rgba(255,255,255,0) } }
   @keyframes vp-in { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
+  @keyframes vp-slide { from { opacity: 0; transform: translateX(24px) } to { opacity: 1; transform: none } }
+  .vp-slide { animation: vp-slide .4s cubic-bezier(.2,.8,.2,1) both }
   .vp-pop { animation: vp-pop .7s cubic-bezier(.2,.8,.2,1) forwards }
   .vp-bar { animation: vp-bar .9s ease-in-out infinite; transform-origin: bottom }
   .vp-hint { animation: vp-hint 1.4s ease-in-out infinite }
@@ -123,12 +128,16 @@ interface SlideProps {
   active: boolean;
   /** The next one, fetched ahead so a swipe starts at once. */
   near: boolean;
+  /** What plays after it; the last one ends on a card instead. */
+  next: VideoEntry | null;
   muted: boolean;
-  onEnded: () => void;
+  onNext: () => void;
   onShare: (v: VideoEntry) => void;
+  /** The last one's card: what this feed is, and the way to the other feed. */
+  feed: { label: string; when: string; count: number; other: string; onOther: () => void };
 }
 
-function Slide({ v, active, near, muted, onEnded, onShare }: SlideProps) {
+function Slide({ v, active, near, next, muted, onNext, onShare, feed }: SlideProps) {
   const root = useRef<HTMLElement>(null);
   const ref = useRef<HTMLVideoElement>(null);
   const fill = useRef<HTMLDivElement>(null);
@@ -144,6 +153,9 @@ function Slide({ v, active, near, muted, onEnded, onShare }: SlideProps) {
   /** While the progress bar is dragged: the fraction under the finger. */
   const [scrub, setScrub] = useState<number | null>(null);
   const [duration, setDuration] = useState(v.durationSeconds);
+  /** Whole seconds left while the next one is announced. */
+  const [left, setLeft] = useState<number | null>(null);
+  const [ended, setEnded] = useState(false);
   const press = useRef<{ x: number; y: number; timer: number; held: boolean } | null>(null);
   const chapters = v.chapters;
 
@@ -152,11 +164,13 @@ function Slide({ v, active, near, muted, onEnded, onShare }: SlideProps) {
     if (!video) return;
     if (active) {
       setPaused(false);
+      setEnded(false);
       // A refusal (sound on without a tap since the page opened) leaves it paused, showing the play button.
       video.play().catch(() => setPaused(true));
     } else {
       video.pause();
       setSheet(false);
+      setLeft(null);
     }
   }, [active]);
 
@@ -169,6 +183,8 @@ function Slide({ v, active, near, muted, onEnded, onShare }: SlideProps) {
       if (video?.duration && fill.current && scrub === null) {
         fill.current.style.transform = `scaleX(${video.currentTime / video.duration})`;
         setChapter(chapterAt(chapters, video.currentTime));
+        const rest = video.duration - video.currentTime;
+        setLeft(rest < UP_NEXT && !video.paused ? Math.ceil(rest) : null);
       }
       frame = requestAnimationFrame(tick);
     };
@@ -197,6 +213,7 @@ function Slide({ v, active, near, muted, onEnded, onShare }: SlideProps) {
   const play = () => {
     const video = ref.current;
     if (!video) return;
+    setEnded(false);
     video.play().then(() => setPaused(false), () => setPaused(true));
   };
 
@@ -284,7 +301,11 @@ function Slide({ v, active, near, muted, onEnded, onShare }: SlideProps) {
         preload={active || near ? "auto" : "none"}
         poster={v.poster}
         src={v.video}
-        onEnded={onEnded}
+        onEnded={() => {
+          setLeft(null);
+          if (next) onNext();
+          else setEnded(true);
+        }}
         onLoadedMetadata={(e) => setDuration(e.currentTarget.duration || v.durationSeconds)}
         onWaiting={() => setBuffering(true)}
         onPlaying={() => { setBuffering(false); setFailed(false); }}
@@ -327,6 +348,40 @@ function Slide({ v, active, near, muted, onEnded, onShare }: SlideProps) {
       )}
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-72 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+
+      {/* The next one, announced over the last seconds; a tap goes to it now. */}
+      {next && left !== null && (
+        <button
+          type="button"
+          onClick={onNext}
+          className="vp-slide absolute right-3 top-[4.25rem] flex w-[15.5rem] items-center gap-2.5 rounded-xl bg-black/55 p-2 pr-3 text-left ring-1 ring-white/10 backdrop-blur-md transition-colors hover:bg-black/70 sm:right-[max(0.75rem,calc(50%-100dvh*9/32+0.75rem))]"
+        >
+          <span className="relative h-16 w-9 shrink-0 overflow-hidden rounded-md bg-black">
+            <img src={next.poster} alt="" className="size-full object-cover" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="num block text-[11px] text-white/65">{left} 秒后播放下一期</span>
+            <span className="mt-0.5 line-clamp-2 text-[13px] font-medium leading-snug">{next.headline ?? next.title}</span>
+          </span>
+          <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true" className="shrink-0 -rotate-90">
+            <circle cx="11" cy="11" r="9" fill="none" stroke="rgba(255,255,255,.2)" strokeWidth="2" />
+            <circle cx="11" cy="11" r="9" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeDasharray={56.55} strokeDashoffset={56.55 * (left / UP_NEXT)} className="transition-[stroke-dashoffset] duration-1000 ease-linear" />
+          </svg>
+        </button>
+      )}
+
+      {/* The last one has played: start it again, or go to the other feed or back to the site. */}
+      {ended && (
+        <div className="vp-in absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/70 px-8 text-center backdrop-blur-sm">
+          <div className="text-[19px] font-semibold">{feed.label}播报都看完了</div>
+          <div className="mt-2 text-[13px] text-white/60">共 {feed.count} 期 · 新一期{feed.label}{feed.when} 出刊后自动生成</div>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <button type="button" onClick={() => jump(0)} className="rounded-full bg-white px-5 py-2.5 text-[14px] font-semibold text-black transition-transform active:scale-95">重播这一期</button>
+            <button type="button" onClick={feed.onOther} className="rounded-full bg-white/15 px-5 py-2.5 text-[14px] transition-[transform,background-color] hover:bg-white/25 active:scale-95">看{feed.other}播报</button>
+            <Link to={v.page} className="rounded-full bg-white/15 px-5 py-2.5 text-[14px] transition-[transform,background-color] hover:bg-white/25 active:scale-95">看图文版</Link>
+          </div>
+        </div>
+      )}
 
       {/* The right-hand column. On a phone it lies over the video, so it keeps to three buttons low down, in
           the room the screens leave under their text (the mark and the download move to the wide layout and
@@ -468,6 +523,11 @@ export default function VideosPage() {
   const go = (i: number) => slides()[i]?.scrollIntoView({ behavior: reducedMotion() ? "auto" : "smooth", block: "start" });
   const tell = (text: string) => setToast((t) => ({ text, n: (t?.n ?? 0) + 1 }));
   const send = (what: string) => slides()[active]?.dispatchEvent(new CustomEvent("player", { detail: what }));
+  const other = KINDS.find((k) => k !== current)!;
+  const switchTo = (kind: VideoKind) => {
+    setActive(0);
+    setParams(kind === KINDS[0]!.kind ? {} : { kind }, { replace: true, preventScrollReset: true });
+  };
 
   // The slide most in view is the one that plays.
   useEffect(() => {
@@ -565,7 +625,17 @@ export default function VideosPage() {
       <h1 className="sr-only">{TITLE}</h1>
       <div ref={feed} key={current.kind} className="h-full snap-y snap-mandatory overflow-y-scroll overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {list.map((v, i) => (
-          <Slide key={v.key} v={v} active={i === active} near={i === active + 1} muted={muted} onEnded={() => go(i + 1)} onShare={share} />
+          <Slide
+            key={v.key}
+            v={v}
+            active={i === active}
+            near={i === active + 1}
+            next={list[i + 1] ?? null}
+            muted={muted}
+            onNext={() => go(i + 1)}
+            onShare={share}
+            feed={{ label: current.label, when: current.when, count: list.length, other: other.label, onOther: () => switchTo(other.kind) }}
+          />
         ))}
         {!list.length && (
           <div className="flex h-dvh flex-col items-center justify-center px-8 text-center">
@@ -591,8 +661,7 @@ export default function VideosPage() {
                 aria-current={on ? "page" : undefined}
                 onClick={() => {
                   if (on) return go(0);
-                  setActive(0);
-                  setParams(k.kind === KINDS[0]!.kind ? {} : { kind: k.kind }, { replace: true, preventScrollReset: true });
+                  switchTo(k.kind);
                 }}
                 className={`relative pb-1.5 text-[16.5px] transition-colors [text-shadow:0_1px_3px_rgba(0,0,0,0.5)] ${on ? "font-semibold text-white" : "text-white/60 hover:text-white/85"}`}
               >

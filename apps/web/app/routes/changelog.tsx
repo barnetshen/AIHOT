@@ -184,7 +184,7 @@ export default function ChangelogPage() {
     <PhoneBar back={{ to: "/more", label: "我的" }} title="更新日志" />
     <ReadingLayout aside={aside}>
       <header className="pb-6">
-        <h1 data-page-title="" className="text-[24px] font-semibold leading-[1.3] text-ink">更新日志</h1>
+        <h1 data-page-title="" className="text-[28px] font-bold leading-[1.25] tracking-[-0.02em] text-ink">更新日志</h1>
         <p className="mt-1.5 text-[13px] text-ink-3">新功能、调整、下线，都写在这里。</p>
       </header>
       <div className="space-y-4">
