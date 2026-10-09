@@ -6,23 +6,20 @@
 // rather than keep showing what was withdrawn, and so does one whose render failed; videos of issues
 // older than the kept ones are removed.
 import { randomUUID } from "node:crypto";
-import { execFile } from "node:child_process";
 import { mkdir, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { promisify } from "node:util";
+import sharp from "sharp";
 import type { ReportDetail } from "@aihot/contracts/site";
 import { config } from "@aihot/backend/config";
 import { sql } from "@aihot/backend/db";
 import type { Finding } from "@aihot/backend/notify/feishu";
 import { listReports, loadReport } from "@aihot/backend/publication/reports";
-import type { VideoEntry, VideoKind, VideosResponse } from "../types.ts";
+import type { Chapter, VideoEntry, VideoKind, VideosResponse } from "../types.ts";
 import { encode, FADE, totalSeconds, type Shot } from "./encode.ts";
-import { CLIP_BOX, renderFrame } from "./frames.ts";
+import { CLIP_BOX, renderScreen, renderStill } from "./frames.ts";
 import { fetchClip, fetchPicture, findMedia } from "./media.ts";
 import { fingerprintOf, narration, periodLabel, scenesOf, toldItems, type Scene } from "./scenes.ts";
 import { voice } from "./voice.ts";
-
-const run = promisify(execFile);
 
 export const VIDEO_DIR = path.join(config.dataDir, "videos");
 /** The issues of each kind that have a video, newest first. */
@@ -47,6 +44,7 @@ interface Row {
   bytes: number;
   clips: number;
   pictures: number;
+  chapters: Chapter[] | null;
   rendered_at: Date;
 }
 
@@ -55,12 +53,17 @@ interface Made {
   bytes: number;
   clips: number;
   pictures: number;
+  chapters: Chapter[];
 }
+
+/** A picture a little larger than the box, so it can drift across it. */
+const DRIFT = { width: Math.round(CLIP_BOX.width * 1.15), height: Math.round(CLIP_BOX.height * 1.15) };
 
 /**
  * Renders an issue's broadcast and its poster under their final names. Every screen is held while its
  * narration is read; a screen about a report shows the report's video when it can be fetched and read,
- * else its picture, else only its text.
+ * else its picture, else only its text. The chapters are where each entry's screen (and the headlines')
+ * begins.
  */
 async function render(kind: VideoKind, key: string, scenes: Scene[], fingerprint: string): Promise<Made> {
   const work = path.join(VIDEO_DIR, `.work-${randomUUID()}`);
@@ -69,30 +72,54 @@ async function render(kind: VideoKind, key: string, scenes: Scene[], fingerprint
     const lines = scenes.map((scene, i) => ({ text: narration(scene), file: path.join(work, `speech-${i}.wav`) }));
     const spoken = await voice.speak(lines);
     const shots: Shot[] = [];
+    const chapters: Chapter[] = [];
     let pictures = 0;
+    let start = 0;
     for (const [i, scene] of scenes.entries()) {
       let clip: string | null = null;
-      let picture: Buffer | null = null;
+      let picture: Shot["picture"] = null;
       let drawn = scene;
       if (scene.type === "entry" && (scene.entry.video || scene.entry.image)) {
         if (scene.entry.video && (await fetchClip(scene.entry.video, path.join(work, `clip-${i}`))) !== null) clip = path.join(work, `clip-${i}`);
-        else if (scene.entry.image) picture = await fetchPicture(scene.entry.image, CLIP_BOX);
+        else if (scene.entry.image) {
+          const png = await fetchPicture(scene.entry.image, DRIFT);
+          if (png) {
+            await writeFile(path.join(work, `picture-${i}.png`), png);
+            // Alternate screens drift opposite ways.
+            picture = { file: path.join(work, `picture-${i}.png`), reverse: pictures++ % 2 === 1 };
+          }
+        }
         if (!clip && !picture) drawn = { ...scene, entry: { ...scene.entry, video: null, image: null } };
-        if (picture) pictures++;
       }
-      const file = path.join(work, `${i}.png`);
-      await writeFile(file, await renderFrame(drawn, picture));
-      // The screen fades in, its narration is read, a short pause.
-      shots.push({ file, seconds: (i ? FADE : 0) + spoken[i]! + PAUSE + FADE, clip, speech: lines[i]!.file });
+      const screen = await renderScreen(drawn);
+      const base = path.join(work, `${i}.png`);
+      await writeFile(base, screen.base);
+      const layers = [];
+      for (const [k, layer] of screen.layers.entries()) {
+        const file = path.join(work, `${i}-${k}.png`);
+        await writeFile(file, layer.png);
+        layers.push({ file, x: layer.x, y: layer.y });
+      }
+      // The first screen's parts come in a moment after the video starts, the others' once it has faded in;
+      // then its narration is read and a short pause follows.
+      const enter = i ? FADE : 0.3;
+      const seconds = enter + spoken[i]! + PAUSE + FADE;
+      shots.push({ base, layers, seconds, enter, clip, picture, story: screen.story, speech: lines[i]!.file });
+      if (scene.type === "entry") chapters.push({ at: Math.round(start * 10) / 10, rank: scene.rank, title: scene.entry.title });
+      if (scene.type === "headlines") chapters.push({ at: Math.round(start * 10) / 10, rank: null, title: "更多快讯" });
+      start += seconds - FADE;
     }
     const video = path.join(work, "video.mp4");
     await encode(shots, video);
-    // The poster is the video's own first moment: its cover.
-    await run("ffmpeg", ["-y", "-nostdin", "-loglevel", "error", "-ss", "0.5", "-i", video, "-frames:v", "1", "-q:v", "4", path.join(work, "poster.jpg")]);
+    // The poster is the cover as it looks once everything has come in.
+    await sharp(await renderStill(scenes[0]!)).jpeg({ quality: 82 }).toFile(path.join(work, "poster.jpg"));
     const mp4 = path.join(VIDEO_DIR, fileOf(kind, key, fingerprint, "mp4"));
     await rename(path.join(work, "poster.jpg"), path.join(VIDEO_DIR, fileOf(kind, key, fingerprint, "jpg")));
     await rename(video, mp4);
-    return { durationMs: Math.round(totalSeconds(shots.map((s) => s.seconds)) * 1000), bytes: (await stat(mp4)).size, clips: shots.filter((s) => s.clip).length, pictures };
+    return {
+      durationMs: Math.round(totalSeconds(shots.map((s) => s.seconds)) * 1000), bytes: (await stat(mp4)).size,
+      clips: shots.filter((s) => s.clip).length, pictures, chapters,
+    };
   } finally {
     await rm(work, { recursive: true, force: true });
   }
@@ -159,12 +186,12 @@ export async function refreshVideos(): Promise<{ rendered: string[]; removed: st
 async function upsert(report: ReportDetail, scenes: Scene[], fingerprint: string, made: Made) {
   const cover = scenes[0]!.type === "cover" ? scenes[0] : null;
   await sql`
-    INSERT INTO report_videos (kind, key, title, headline, issue_number, fingerprint, duration_ms, bytes, clips, pictures, rendered_at)
+    INSERT INTO report_videos (kind, key, title, headline, issue_number, fingerprint, duration_ms, bytes, clips, pictures, chapters, rendered_at)
     VALUES (${report.kind}, ${report.key}, ${report.title}, ${cover?.headline ?? null}, ${report.issueNumber}, ${fingerprint},
-      ${made.durationMs}, ${made.bytes}, ${made.clips}, ${made.pictures}, now())
+      ${made.durationMs}, ${made.bytes}, ${made.clips}, ${made.pictures}, ${sql.json(made.chapters as never)}, now())
     ON CONFLICT (kind, key) DO UPDATE SET title = EXCLUDED.title, headline = EXCLUDED.headline, issue_number = EXCLUDED.issue_number,
       fingerprint = EXCLUDED.fingerprint, duration_ms = EXCLUDED.duration_ms, bytes = EXCLUDED.bytes, clips = EXCLUDED.clips,
-      pictures = EXCLUDED.pictures, rendered_at = EXCLUDED.rendered_at`;
+      pictures = EXCLUDED.pictures, chapters = EXCLUDED.chapters, rendered_at = EXCLUDED.rendered_at`;
 }
 
 /** Files no row names (a run stopped half way): a work folder or a video whose row was never written. */
@@ -178,7 +205,7 @@ export async function listVideos(): Promise<VideosResponse> {
   const rows = await sql<Row[]>`SELECT * FROM report_videos ORDER BY key DESC`;
   const entry = (r: Row): VideoEntry => ({
     kind: r.kind, key: r.key, issueNumber: r.issue_number, title: r.title, headline: r.headline, period: periodLabel(r.kind, r.key),
-    durationSeconds: Math.round(r.duration_ms / 1000), bytes: Number(r.bytes), clips: r.clips, pictures: r.pictures,
+    durationSeconds: Math.round(r.duration_ms / 1000), bytes: Number(r.bytes), clips: r.clips, pictures: r.pictures, chapters: r.chapters ?? [],
     video: `/api/videos/files/${fileOf(r.kind, r.key, r.fingerprint, "mp4")}`,
     poster: `/api/videos/files/${fileOf(r.kind, r.key, r.fingerprint, "jpg")}`,
     page: `/${r.kind}/${r.key}`, renderedAt: r.rendered_at.toISOString(),

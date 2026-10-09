@@ -79,6 +79,12 @@ docker compose run --rm setup && docker compose up -d
 
 下面按时间从新到旧列出每次更新要注意的事。
 
+#### 视频播报的动效与目录（2026 年 10 月 9 日）
+
+- 迁移 `0059_report_videos_chapters` 给 `report_videos` 加上目录（`chapters`）一列，不改已有数据。
+- 视频的画面改成逐层出场，已经生成的视频都要重新生成：每 10 分钟最多 3 期，最新的先做。还没轮到的旧视频会先下架（和内容变了时的规则一样），14 期日报加 8 期周报全部补齐大约要一个多小时。
+- 每期生成时间从约 1 分钟变成 1.5–3 分钟（4 核），不需要改配置。
+
 #### 日报周报视频播报（2026 年 10 月 8 日）
 
 这个站启用了模块 `report-videos`：每期日报和周报出刊后自动生成一条竖屏视频播报，主播口播每条要闻，画面配新闻自带的视频或配图，在 `/videos` 看。说明见 [`modules/report-videos/README.md`](../modules/report-videos/README.md)。
