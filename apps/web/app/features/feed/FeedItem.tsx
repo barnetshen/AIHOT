@@ -37,7 +37,7 @@ export const FeedItem = memo(function FeedItem({ item, group, filters, read = fa
   const tags = showTags ? item.tags.slice(0, 3) : [];
 
   return (
-    <article className="relative min-w-0 lg:card lg:card-hover lg:px-[18px] lg:pb-[14px] lg:pt-[15px]" data-item-id={item.id}>
+    <article className="group/item relative min-w-0 lg:card lg:card-hover lg:px-5 lg:pb-[15px] lg:pt-4" data-item-id={item.id}>
       <header className="flex min-h-[22px] items-center gap-1.5 text-[12.5px] leading-[18px] text-ink-4 lg:min-h-[18px] lg:gap-2">
         <SourceLine item={item} className="text-ink-4" />
         {at && (
@@ -71,7 +71,7 @@ export const FeedItem = memo(function FeedItem({ item, group, filters, read = fa
         </p> : <IntentLink viewTransition to={`/items/${item.id}`} onClick={open} aria-label={`查看 ${item.x!.authorName} 的帖子`} className="absolute inset-0" />
       ) : (
         <>
-          <h3 className={`mt-1.5 line-clamp-2 text-[17px] font-[650] leading-[1.5] lg:mt-2 lg:line-clamp-none lg:leading-[1.55] ${read ? "text-ink-4" : "text-ink"}`}>
+          <h3 className={`mt-1.5 line-clamp-2 text-[17px] font-[650] leading-[1.5] transition-colors duration-200 lg:mt-2 lg:line-clamp-none lg:text-[17.5px] lg:leading-[1.55] lg:group-hover/item:text-accent ${read ? "text-ink-4" : "text-ink"}`}>
             <IntentLink viewTransition to={`/items/${item.id}`} onClick={open} className="after:absolute after:inset-0 after:content-['']">
               {item.title}
             </IntentLink>

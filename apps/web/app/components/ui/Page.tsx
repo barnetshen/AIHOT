@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { IconChevronRight } from "../icons";
+import { RingMark } from "@aihot/site/brand/Logo.tsx";
 
 /**
  * The reading template, one of the site's two page widths (the other is the full-width feeds and
@@ -75,6 +76,11 @@ export function MoreLink({ to, children }: { to: string; children: ReactNode }) 
 export function EmptyState({ title, children, action }: { title: ReactNode; children?: ReactNode; action?: ReactNode }) {
   return (
     <div className="flex flex-col items-center px-6 py-14 text-center">
+      {/* The site's mark in a soft halo: an empty place still looks like this site. */}
+      <span aria-hidden="true" className="relative mb-4 flex size-14 items-center justify-center rounded-full bg-accent-soft text-accent">
+        <span className="absolute inset-[-6px] rounded-full border border-accent/10" />
+        <RingMark className="size-7" />
+      </span>
       <div className="text-[15px] font-semibold text-ink-2">{title}</div>
       {children && <p className="mt-1.5 max-w-sm text-[13px] leading-relaxed text-ink-4">{children}</p>}
       {action && <div className="mt-4">{action}</div>}

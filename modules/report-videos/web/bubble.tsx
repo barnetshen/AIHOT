@@ -91,7 +91,7 @@ export function VideoBubble() {
           aria-label={`看${kind}视频播报：${v.headline ?? v.title}`}
           className="flex items-center rounded-2xl lg:border lg:border-line lg:bg-surface lg:p-1.5 lg:shadow-[var(--shadow-soft)] lg:transition-shadow lg:hover:shadow-[0_10px_30px_rgba(0,0,0,0.12)]"
         >
-          <span className="relative block aspect-[9/16] w-[68px] shrink-0 overflow-hidden rounded-[14px] bg-black shadow-[0_8px_24px_rgba(0,0,0,0.28)] ring-2 ring-white lg:w-[58px] lg:rounded-xl lg:shadow-none lg:ring-0">
+          <span className="relative block aspect-[9/16] w-[60px] shrink-0 overflow-hidden rounded-[14px] bg-black shadow-[0_8px_24px_rgba(0,0,0,0.28)] ring-2 ring-white lg:w-[58px] lg:rounded-xl lg:shadow-none lg:ring-0">
             <img src={v.poster} alt="" className="vb-drift size-full object-cover" />
             <span className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/75 to-transparent" />
             <span className="absolute left-1/2 top-1/2 flex size-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/85 pl-0.5 text-black transition-transform group-hover:scale-110">
