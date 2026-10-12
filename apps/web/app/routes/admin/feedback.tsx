@@ -27,7 +27,7 @@ function FeedbackCard({ f }: { f: AdminFeedbackRow }) {
   const version = new Date(f.updated_at).toISOString();
   return (
     <article className="rounded-panel bg-surface p-4 ring-1 ring-line">
-      <div className="flex flex-wrap items-center gap-2 text-[12.5px] text-ink-3">
+      <div className="flex flex-wrap items-center gap-2 text-13 text-ink-3">
         <span className="num font-medium text-ink-2">#{f.id}</span>
         <Badge tone={TONE[f.status] ?? "muted"}>{FEEDBACK_STATUS[f.status] ?? f.status}</Badge>
         <Time at={f.created_at} />
@@ -39,14 +39,14 @@ function FeedbackCard({ f }: { f: AdminFeedbackRow }) {
           <Badge tone="warn" title={f.forward_error && f.forward_error !== "pending" ? `还没有转发到内部飞书群：${f.forward_error}` : "还没有转发到内部飞书群"}>未转发</Badge>
         )}
       </div>
-      <p className="mt-2.5 whitespace-pre-wrap text-[14px] leading-relaxed text-ink">{f.content}</p>
+      <p className="mt-2.5 whitespace-pre-wrap text-14 leading-relaxed text-ink">{f.content}</p>
       {f.screenshot === "local" && (
         <a href={`${base}/screenshot`} target="_blank" rel="noreferrer" className="mt-2 inline-block">
           <img src={`${base}/screenshot`} alt="反馈截图" loading="lazy" className="max-h-48 rounded-control ring-1 ring-line" />
         </a>
       )}
-      {f.screenshot === "feishu" && <p className="mt-2 text-[12.5px] text-ink-4">截图已随反馈转到内部飞书群。</p>}
-      {f.screenshot === "gone" && <p className="mt-2 text-[12.5px] text-ink-4">截图未能转到飞书，已删除。</p>}
+      {f.screenshot === "feishu" && <p className="mt-2 text-13 text-ink-4">截图已随反馈转到内部飞书群。</p>}
+      {f.screenshot === "gone" && <p className="mt-2 text-13 text-ink-4">截图未能转到飞书，已删除。</p>}
       <div className="mt-3 grid gap-2 sm:grid-cols-[180px_1fr_auto] sm:items-start">
         <Select
           aria-label="处理状态"
@@ -110,11 +110,11 @@ export default function FeedbackAdmin({ loaderData }: Route.ComponentProps) {
       <Pager page={page} hasMore={rows.length === 50} />
       {bans.length > 0 && (
         <Card className="mt-8" title="已封禁的来源">
-          <ul className="space-y-2 text-[13px]">
+          <ul className="space-y-2 text-13">
             {bans.map((b) => (
               <li key={b.source_hash} className="flex flex-wrap items-center justify-between gap-2">
                 <span>
-                  <span className="font-mono text-[12px] text-ink-3">{b.source_hash}</span> · {b.reason} · {b.created_by} · {bj(b.created_at, true)}
+                  <span className="font-mono text-12 text-ink-3">{b.source_hash}</span> · {b.reason} · {b.created_by} · {bj(b.created_at, true)}
                 </span>
                 <Button size="sm" tone="ghost" onClick={() => run("DELETE", `/api/admin/feedback-bans/${encodeURIComponent(b.source_hash)}`, undefined, { label: `unban-${b.source_hash}`, success: "已解除封禁" })}>
                   解除

@@ -1,5 +1,5 @@
-// What the site's own pages show of the broadcasts (web/bubble.tsx, web/home.tsx): the list, read once a
-// visit in the browser from /api/videos, and the player's address for one of them.
+// What the site's own pages show of the broadcasts (web/bubble.tsx, web/home.tsx): the list as the
+// floating card reads it, once a visit in the browser from /api/videos, and the player's address for one.
 import { useEffect, useState } from "react";
 import type { VideoEntry, VideosResponse } from "../types.ts";
 

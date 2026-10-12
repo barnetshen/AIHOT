@@ -1,16 +1,17 @@
-// Reads lines aloud with the voice model in the folder given as its argument: [{ text, file }] on stdin,
-// one WAV file each, their lengths in seconds as JSON on stdout (voice.ts).
-import { availableParallelism } from "node:os";
+// Reads lines aloud with the voice model in the folder given as its first argument, on as many threads as
+// its second: [{ text, file }] on stdin, one WAV file each, their lengths in seconds as JSON on stdout
+// (voice.ts).
 import sherpa from "sherpa-onnx-node";
 
 const dir = process.argv[2]!;
+const threads = Number(process.argv[3]);
 let input = "";
 for await (const chunk of process.stdin) input += chunk;
 const lines = JSON.parse(input) as Array<{ text: string; file: string }>;
 const tts = new sherpa.OfflineTts({
   model: {
     vits: { model: `${dir}/model.onnx`, lexicon: `${dir}/lexicon.txt`, tokens: `${dir}/tokens.txt`, dictDir: `${dir}/dict` },
-    numThreads: Math.min(4, availableParallelism()),
+    numThreads: threads,
     provider: "cpu",
   },
   // Dates, phone numbers, numbers and words read more than one way.

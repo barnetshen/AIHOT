@@ -7,6 +7,7 @@ import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { REPO_ROOT } from "@aihot/backend/config";
+import { THREADS, yieldCpu } from "./cpu.ts";
 
 export const VOICE = "vits-melo-tts-zh_en";
 export const VOICE_DIR = path.join(REPO_ROOT, "modules/report-videos/voice", VOICE);
@@ -27,7 +28,8 @@ function speakWithModel(lines: Line[]): Promise<number[]> {
     return Promise.reject(new Error(`no voice model in ${VOICE_DIR}: run node modules/report-videos/scripts/fetch-voice.ts`));
   }
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [SPEAK, VOICE_DIR], { stdio: ["pipe", "pipe", "pipe"] });
+    const child = spawn(process.execPath, [SPEAK, VOICE_DIR, String(THREADS)], { stdio: ["pipe", "pipe", "pipe"] });
+    yieldCpu(child);
     let out = "";
     let err = "";
     child.stdout.on("data", (chunk: Buffer) => (out += chunk));

@@ -82,7 +82,7 @@ function SummaryLabel({ children }: { children: ReactNode }) {
   return (
     <>
       <span aria-hidden="true" className="bg-brand absolute inset-y-0 left-0 w-[3px]" />
-      <div className="mb-1.5 flex items-center gap-1.5 text-[12px] font-semibold text-accent">
+      <div className="mb-1.5 flex items-center gap-1.5 text-12 font-semibold text-accent">
         <IconSparkles size={13} />
         {children}
       </div>
@@ -163,7 +163,7 @@ function useToast(): [string | null, (text: string) => void] {
 function Toast({ text }: { text: string | null }) {
   if (!text) return null;
   return (
-    <div role="status" className="fixed bottom-[calc(84px+env(safe-area-inset-bottom))] left-1/2 z-50 -translate-x-1/2 rounded-full bg-ink px-4 py-2 text-[13px] text-bg shadow-[var(--shadow-pop)] lg:bottom-8">
+    <div role="status" className="fixed bottom-[calc(84px+env(safe-area-inset-bottom))] left-1/2 z-50 -translate-x-1/2 rounded-full bg-ink px-4 py-2 text-13 text-bg shadow-[var(--shadow-pop)] lg:bottom-8">
       {text}
     </div>
   );
@@ -191,7 +191,7 @@ function ItemPreview({ preview }: { preview: FeedItemSummary }) {
     <div className="mx-auto max-w-[var(--page-max-reading)] pb-8">
       <PhoneBar back={{ to: preview.selected ? "/" : "/all", label: preview.selected ? "精选" : "全部" }} title={isX ? preview.x!.authorName : preview.title} />
       <article className="pb-6 pt-3" aria-busy="true">
-        <div className="mb-3 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[13px] text-ink-3">
+        <div className="mb-3 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-13 text-ink-3">
           <span className="font-semibold text-ink-2">{isX ? preview.x!.authorName : preview.source.name}</span>
           {isX && <span>· @{preview.x!.handle} · X</span>}
           <span>·</span>
@@ -204,17 +204,17 @@ function ItemPreview({ preview }: { preview: FeedItemSummary }) {
             </span>
           )}
         </div>
-        {!isX && <h1 data-page-title="" className="text-[26px] font-bold leading-[1.38] tracking-[-0.01em] text-ink">{preview.title}</h1>}
+        {!isX && <h1 data-page-title="" className="text-26 font-bold leading-[1.38] tracking-[-0.01em] text-ink">{preview.title}</h1>}
         {preview.summary && (
           <section className={`${SUMMARY_CARD} ${isX ? "mt-4" : "mt-6"}`}>
             <SummaryLabel>{isX && preview.summary.replace(/\s+/g, " ").trim() === preview.title ? "原文" : "AI 导读"}</SummaryLabel>
-            <p className="text-[17px] leading-[1.75] text-ink">{preview.summary}</p>
+            <p className="text-17 leading-[1.75] text-ink">{preview.summary}</p>
           </section>
         )}
         {preview.reason && (
           <section className="mt-6 border-t border-line pt-4">
-            <div className="mb-1 text-[12px] font-semibold text-ink-3">{ITEM_COPY.reasonLabel}</div>
-            <p className="text-[15px] leading-[1.75] text-ink-2">{preview.reason}</p>
+            <div className="mb-1 text-12 font-semibold text-ink-3">{ITEM_COPY.reasonLabel}</div>
+            <p className="text-15 leading-[1.75] text-ink-2">{preview.reason}</p>
           </section>
         )}
         <div className="mt-9 space-y-3 border-t border-line pt-6" aria-hidden="true">
@@ -244,10 +244,10 @@ function ItemGone() {
     <div className="mx-auto max-w-sm pb-8">
       <PhoneBar back={{ to: "/", label: "精选" }} />
       <div className="py-24 text-center">
-        <div className="text-[20px] font-bold text-ink">{gone ? "这里没有内容" : "暂时无法加载"}</div>
-        <p className="mt-2 text-[13.5px] leading-relaxed text-ink-3">{gone ? "这篇内容不存在，或已不再公开。" : "服务暂时繁忙，请稍后再试。"}</p>
+        <div className="text-20 font-bold text-ink">{gone ? "这里没有内容" : "暂时无法加载"}</div>
+        <p className="mt-2 text-14 leading-relaxed text-ink-3">{gone ? "这篇内容不存在，或已不再公开。" : "服务暂时繁忙，请稍后再试。"}</p>
         {!gone && (
-          <button type="button" onClick={() => void revalidator.revalidate()} className="mt-6 h-11 rounded-full border border-line-strong bg-surface px-5 text-[14px] font-medium text-ink-2 active:bg-bg-sunk">
+          <button type="button" onClick={() => void revalidator.revalidate()} className="mt-6 h-11 rounded-full border border-line-strong bg-surface px-5 text-14 font-medium text-ink-2 active:bg-bg-sunk">
             重试
           </button>
         )}
@@ -311,7 +311,7 @@ function ItemView({ item }: { item: SiteItemDetail }) {
     else navigate(item.selected ? "/" : "/all");
   };
   const backButton = (
-    <button type="button" onClick={back} className="-ml-1.5 inline-flex h-8 items-center gap-1.5 rounded-full px-1.5 text-[13px] text-ink-3 transition-colors hover:text-ink">
+    <button type="button" onClick={back} className="-ml-1.5 inline-flex h-8 items-center gap-1.5 rounded-full px-1.5 text-13 text-ink-3 transition-colors hover:text-ink">
       <IconArrowLeft size={16} /> 返回
     </button>
   );
@@ -351,7 +351,7 @@ function ItemView({ item }: { item: SiteItemDetail }) {
         href={item.links.original}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-full bg-accent px-3.5 text-[12.5px] font-semibold text-accent-contrast shadow-[0_4px_12px_-3px_var(--brand-glow)] transition-[filter,transform] hover:brightness-110 active:scale-[0.97]"
+        className="inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-full bg-accent px-3.5 text-13 font-semibold text-accent-contrast shadow-[0_4px_12px_-3px_var(--brand-glow)] transition-[filter,transform] hover:brightness-110 active:scale-[0.97]"
       >
         {originalLabel} <IconExternal size={13} />
       </a>
@@ -370,15 +370,15 @@ function ItemView({ item }: { item: SiteItemDetail }) {
   // under the facts (or under the notes when only the right rail shows).
   const facts = (
     <RailSection title="来源">
-      <div className="text-[14px] font-semibold leading-snug text-ink">{isX ? item.x!.authorName : item.source.name}</div>
-      <div className="mt-1 text-[12.5px] leading-relaxed text-ink-3">
+      <div className="text-14 font-semibold leading-snug text-ink">{isX ? item.x!.authorName : item.source.name}</div>
+      <div className="mt-1 text-13 leading-relaxed text-ink-3">
         {isX ? `@${item.x!.handle} · X` : item.author ?? hostOf(item.links.original)}
       </div>
-      <div className="mt-3 text-[12px] text-ink-4">{timeLabel}</div>
-      <time dateTime={shownAt} className="mono mt-0.5 block text-[12.5px] text-ink-2">
+      <div className="mt-3 text-12 text-ink-4">{timeLabel}</div>
+      <time dateTime={shownAt} className="mono mt-0.5 block text-13 text-ink-2">
         {fullDateTime(shownAt)}
       </time>
-      <div className="mt-0.5 text-[12px] text-ink-4" suppressHydrationWarning>
+      <div className="mt-0.5 text-12 text-ink-4" suppressHydrationWarning>
         {relativeTime(shownAt)}
       </div>
     </RailSection>
@@ -389,7 +389,7 @@ function ItemView({ item }: { item: SiteItemDetail }) {
         <ol className="-ml-px space-y-0.5 border-l border-line">
           {item.outline.map((o) => (
             <li key={o.id}>
-              <a href={`#${o.id}`} onClick={(e) => jumpTo(e, o.id)} className={`-ml-px block border-l border-transparent py-1 text-[12.5px] leading-snug text-ink-3 transition-colors hover:border-accent hover:text-ink ${o.level > 2 ? "pl-5" : "pl-3"}`}>
+              <a href={`#${o.id}`} onClick={(e) => jumpTo(e, o.id)} className={`-ml-px block border-l border-transparent py-1 text-13 leading-snug text-ink-3 transition-colors hover:border-accent hover:text-ink ${o.level > 2 ? "pl-5" : "pl-3"}`}>
                 {o.text}
               </a>
             </li>
@@ -403,7 +403,7 @@ function ItemView({ item }: { item: SiteItemDetail }) {
       {item.reason && !summaryOnly ? (
         <RailSection title={ITEM_COPY.reasonLabel}>
           {verdict && <div className="mb-3">{verdict}</div>}
-          <p className="text-[13.5px] leading-[1.8] text-ink-2">{item.reason}</p>
+          <p className="text-14 leading-[1.8] text-ink-2">{item.reason}</p>
         </RailSection>
       ) : (
         verdict && <RailSection title={shownScore(item.score) !== null ? "AI 评分" : undefined}>{verdict}</RailSection>
@@ -468,7 +468,7 @@ function ItemView({ item }: { item: SiteItemDetail }) {
         {/* Between lg and 2xl the left rail is hidden: 返回 stays at the top while reading, as on the original site. */}
         <div className="sticky top-0 z-20 -mx-2 hidden bg-bg/95 px-2 py-1.5 backdrop-blur lg:block 2xl:hidden">{backButton}</div>
         <article className="pb-6 pt-3 lg:pt-2 2xl:pt-1">
-          <div className={`flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[13px] text-ink-3 2xl:hidden ${isX ? "" : "mb-3"}`}>
+          <div className={`flex flex-wrap items-center gap-x-1.5 gap-y-1 text-13 text-ink-3 2xl:hidden ${isX ? "" : "mb-3"}`}>
             <span className="font-semibold text-ink-2">{isX ? item.x!.authorName : item.source.name}</span>
             {isX && <span>· @{item.x!.handle} · X</span>}
             {item.author && !isX && <span>· {item.author}</span>}
@@ -487,25 +487,25 @@ function ItemView({ item }: { item: SiteItemDetail }) {
               </span>
             )}
           </div>
-          {!isX && <h1 data-page-title="" className="text-[26px] font-bold leading-[1.38] tracking-[-0.01em] text-ink lg:text-[32px] lg:leading-[1.34] xl:text-[36px] xl:leading-[1.3]">{item.title}</h1>}
-          {!isX && item.originalTitle && <p className="mt-2.5 text-[14px] leading-relaxed text-ink-4">{item.originalTitle}</p>}
+          {!isX && <h1 data-page-title="" className="text-26 font-bold leading-[1.38] tracking-[-0.01em] text-ink lg:text-32 lg:leading-[1.34] xl:text-36 xl:leading-[1.3]">{item.title}</h1>}
+          {!isX && item.originalTitle && <p className="mt-2.5 text-14 leading-relaxed text-ink-4">{item.originalTitle}</p>}
 
           {item.summary && (!isX || item.summary.replace(/\s+/g, " ").trim() !== item.title) && (
             <section className={`${SUMMARY_CARD} ${isX ? "mt-4" : "mt-6 xl:mt-8"}`}>
               <SummaryLabel>{summaryOnly ? "摘要" : "AI 导读"}</SummaryLabel>
-              <p className="text-[17px] leading-[1.75] text-ink lg:text-[18px] xl:text-[19px]">{item.summary}</p>
+              <p className="text-17 leading-[1.75] text-ink lg:text-18 xl:text-20">{item.summary}</p>
             </section>
           )}
 
           {item.reason && !summaryOnly && (
             <section className="mt-6 border-t border-line pt-4 lg:hidden">
-              <div className="mb-1 text-[12px] font-semibold text-ink-3">{ITEM_COPY.reasonLabel}</div>
-              <p className="text-[15px] leading-[1.75] text-ink-2">{item.reason}</p>
+              <div className="mb-1 text-12 font-semibold text-ink-3">{ITEM_COPY.reasonLabel}</div>
+              <p className="text-15 leading-[1.75] text-ink-2">{item.reason}</p>
             </section>
           )}
 
           {item.sameEvent && (
-            <p className="mt-5 text-[13px] leading-relaxed text-ink-4">
+            <p className="mt-5 text-13 leading-relaxed text-ink-4">
               同一新闻，精选展示
               <Link viewTransition to={`/items/${item.sameEvent.id}`} className="text-ink-3 transition-colors hover:text-accent">
                 《{item.sameEvent.title}》
@@ -520,12 +520,12 @@ function ItemView({ item }: { item: SiteItemDetail }) {
             </div>
           )}
 
-          {summaryOnly && <p className="mt-7 rounded-control bg-bg-sunk px-4 py-3 text-[13.5px] leading-relaxed text-ink-3">应来源方要求，这里只提供摘要与原文入口。完整内容请阅读原文。</p>}
+          {summaryOnly && <p className="mt-7 rounded-control bg-bg-sunk px-4 py-3 text-14 leading-relaxed text-ink-3">应来源方要求，这里只提供摘要与原文入口。完整内容请阅读原文。</p>}
 
           {item.body && bodyHtml && (
             <section className="mt-9 border-t border-line pt-4 xl:mt-10">
               <div className="mb-6 flex items-center justify-between gap-3">
-                <span className="text-[12px] text-ink-4">{bodyLabel}</span>
+                <span className="text-12 text-ink-4">{bodyLabel}</span>
                 {hasTranslation && (
                   <PillTabs
                     size="xs"
@@ -540,7 +540,7 @@ function ItemView({ item }: { item: SiteItemDetail }) {
                 )}
               </div>
               {hasTranslation && lang === "zh" && !item.body.complete && (
-                <p className="mb-5 rounded-control bg-bg-sunk px-3 py-2 text-[13px] text-ink-3">译文尚不完整，完整内容请切换到原文。</p>
+                <p className="mb-5 rounded-control bg-bg-sunk px-3 py-2 text-13 text-ink-3">译文尚不完整，完整内容请切换到原文。</p>
               )}
               <ArticleBody html={bodyHtml} />
             </section>
@@ -549,7 +549,7 @@ function ItemView({ item }: { item: SiteItemDetail }) {
           {isX && item.x!.media.length > 0 && <MediaGallery media={item.x!.media} postUrl={item.links.original} />}
           {isX && item.x!.quoted?.text && <QuotedPost quoted={item.x!.quoted} original={lang === "original"} />}
 
-          <p className="mt-8 text-[13px] text-ink-4">
+          <p className="mt-8 text-13 text-ink-4">
             来源：
             <a href={item.links.original} target="_blank" rel="noopener noreferrer" className="text-ink-3 hover:text-accent">
               {isX ? item.x!.authorName : item.source.name}
@@ -576,11 +576,11 @@ function ItemView({ item }: { item: SiteItemDetail }) {
 
           {related.length > 0 && (
             <section className="mt-8">
-              <h2 className="mb-2 text-[14px] font-semibold text-ink">相关事件</h2>
+              <h2 className="mb-2 text-14 font-semibold text-ink">相关事件</h2>
               <ul className="divide-y divide-line-soft">
                 {related.map((s) => (
                   <li key={s.publicId}>
-                    <Link viewTransition to={`/story/${s.publicId}`} className="block py-2.5 text-[14px] text-ink-2 hover:text-accent">
+                    <Link viewTransition to={`/story/${s.publicId}`} className="block py-2.5 text-14 text-ink-2 hover:text-accent">
                       {s.title}
                     </Link>
                   </li>

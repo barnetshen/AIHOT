@@ -115,10 +115,13 @@ export interface TopicPagePart {
 
 /** A module's parts of the plain home page (routes/home.tsx). */
 export interface HomePart {
-  /** Above the hot topics where the page has one column (phones, narrower desktops). */
-  Top?: ComponentType;
+  /** The api address its parts draw from: read with the page on the server, so they arrive with it. */
+  api: string;
+  /** Above the hot topics where the page has one column (phones, narrower desktops). `data` is what
+   *  `api` answered, null when it could not be read. */
+  Top?: ComponentType<{ data: unknown }>;
   /** The head of the side column on wide desktops. */
-  Rail?: ComponentType;
+  Rail?: ComponentType<{ data: unknown }>;
 }
 
 export interface WebModule {

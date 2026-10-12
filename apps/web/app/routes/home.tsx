@@ -1,7 +1,7 @@
 import { Link, redirect, useLoaderData } from "react-router";
 import type { Route } from "./+types/home";
 import type { TimelineResponse } from "@aihot/contracts/site";
-import { cachedPage, loadOr404 } from "../lib/api.server";
+import { apiGet, cachedPage, loadOr404 } from "../lib/api.server";
 import { pageReuse } from "../lib/page-reuse";
 import { filterParams, itemListLd, listPath, pageMeta, readFilters, siteLd } from "../lib/seo";
 import type { Screen } from "../components/shell/screens";
@@ -24,8 +24,14 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (q && q.trim()) throw redirect(`/all${url.search}`);
   const filters = readFilters(url.searchParams);
   const upstream = new Headers();
-  const data = await loadOr404<TimelineResponse>(listPath("/api/site/timeline", filterParams(filters)), { responseHeaders: upstream, signal: request.signal });
-  return cachedPage(60, { data, filters }, upstream);
+  // The modules' parts belong to the plain home page, not to a filtered one; one that cannot be read is
+  // left out rather than failing the page.
+  const plain = !filters.category && filters.channel === "all" && !filters.tag;
+  const [data, ...partData] = await Promise.all([
+    loadOr404<TimelineResponse>(listPath("/api/site/timeline", filterParams(filters)), { responseHeaders: upstream, signal: request.signal }),
+    ...PARTS.map(({ part }) => (plain ? apiGet<unknown>(part.api, { signal: request.signal }).catch(() => null) : null)),
+  ]);
+  return cachedPage(60, { data, filters, plain, parts: partData }, upstream);
 }
 
 export function meta({ loaderData }: Route.MetaArgs) {
@@ -43,10 +49,8 @@ const ONWARD = [
 ];
 
 export default function Home() {
-  const { data, filters } = useLoaderData<typeof loader>();
+  const { data, filters, plain, parts } = useLoaderData<typeof loader>();
   const title = filters.tag ? `#${filters.tag}` : "精选";
-  // The modules' parts belong to the plain home page, not to a filtered one.
-  const plain = !filters.category && filters.channel === "all" && !filters.tag;
   return (
     <div className="pb-6 xl:grid xl:grid-cols-[minmax(0,1fr)_340px] xl:gap-10">
       <div className="min-w-0">
@@ -54,14 +58,14 @@ export default function Home() {
         <FeedBar base="/" category={filters.category} channel={filters.channel} />
         <ActiveFilters base="/" category={filters.category} channel={filters.channel} tag={filters.tag} />
         <div className="hidden lg:block">
-          <h1 className="text-[28px] font-bold leading-[1.25] tracking-[-0.02em] text-ink">{title}</h1>
+          <h1 className="text-28 font-bold leading-[1.25] tracking-[-0.02em] text-ink">{title}</h1>
           <div className="mb-6 mt-4 flex items-center justify-between gap-4">
             <CategoryTabs base="/" category={filters.category} channel={filters.channel} layoutId="home-cat-desk" className="min-w-0" />
             <SearchField keep={{ category: filters.category }} />
           </div>
         </div>
 
-        {plain && PARTS.map(({ name, part: { Top } }) => Top && <div key={name} className="xl:hidden"><Top /></div>)}
+        {plain && PARTS.map(({ name, part: { Top } }, i) => Top && <div key={name} className="xl:hidden"><Top data={parts[i]} /></div>)}
         {data.hot && <div className="xl:hidden"><HotTopics entries={data.hot} /></div>}
 
         <Timeline initial={data} filters={data.filters} />
@@ -70,7 +74,7 @@ export default function Home() {
       {/* Wide desktops: a side column that stays in view beside the feed. */}
       <aside aria-label="侧栏" className="hidden xl:block">
         <div className="scrollbar-none sticky top-6 max-h-[calc(100dvh-3rem)] space-y-7 overflow-y-auto pb-2">
-          {PARTS.map(({ name, part: { Rail } }) => Rail && <Rail key={name} />)}
+          {plain && PARTS.map(({ name, part: { Rail } }, i) => Rail && <Rail key={name} data={parts[i]} />)}
           {data.hot && <HotTopics entries={data.hot} compact />}
           <nav aria-label="更多入口" className="grid grid-cols-2 gap-2.5">
             {ONWARD.map((o) => (
@@ -79,8 +83,8 @@ export default function Home() {
                   <o.icon size={17} />
                 </span>
                 <span>
-                  <span className="block text-[13.5px] font-semibold text-ink">{o.label}</span>
-                  <span className="block text-[11.5px] text-ink-4">{o.note}</span>
+                  <span className="block text-14 font-semibold text-ink">{o.label}</span>
+                  <span className="block text-12 text-ink-4">{o.note}</span>
                 </span>
               </Link>
             ))}

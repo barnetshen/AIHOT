@@ -41,7 +41,7 @@ const tools = (): Row[] => [
 function Group({ title, children }: { title?: string; children: ReactNode }) {
   return (
     <section>
-      {title && <h2 className="px-4 pb-2 pt-6 text-[13px] font-semibold text-ink-3">{title}</h2>}
+      {title && <h2 className="px-4 pb-2 pt-6 text-13 font-semibold text-ink-3">{title}</h2>}
       <ul className="card divide-y divide-line-soft overflow-hidden">{children}</ul>
     </section>
   );
@@ -50,13 +50,13 @@ function Group({ title, children }: { title?: string; children: ReactNode }) {
 function RowLink({ row, dot = false }: { row: Row; dot?: boolean }) {
   return (
     <li>
-      <Link viewTransition to={row.to} className="flex min-h-[52px] items-center gap-3 px-4 text-[16px] font-medium text-ink transition-colors active:bg-bg-sunk lg:hover:bg-bg-sunk">
+      <Link viewTransition to={row.to} className="flex min-h-[52px] items-center gap-3 px-4 text-16 font-medium text-ink transition-colors active:bg-bg-sunk lg:hover:bg-bg-sunk">
         <span className="text-ink-3">{row.icon}</span>
         <span className="flex flex-1 items-center gap-2">
           {row.label}
           {dot && <span className="size-[7px] rounded-full bg-hot" aria-label="有新的更新" />}
         </span>
-        {row.detail && <span className="text-[14px] font-normal text-ink-4">{row.detail}</span>}
+        {row.detail && <span className="text-14 font-normal text-ink-4">{row.detail}</span>}
         <IconChevronRight size={16} className="text-ink-4" />
       </Link>
     </li>
@@ -73,22 +73,22 @@ export default function MorePage() {
   return (
     <div className="mx-auto max-w-[var(--page-max-reading)] pb-8">
       <PhoneBar title="我的" large />
-      <h1 className="hidden pb-4 pt-1 text-[28px] font-bold tracking-[-0.02em] text-ink lg:block">我的</h1>
+      <h1 className="hidden pb-4 pt-1 text-28 font-bold tracking-[-0.02em] text-ink lg:block">我的</h1>
       {/* Whose app this is: the mark, the name and what it does, over a soft wash of the brand colour. */}
       <section className="relative mb-2 overflow-hidden rounded-sheet bg-surface p-5 shadow-[var(--shadow-card)] ring-1 ring-line-soft dark:bg-raised">
         <span aria-hidden="true" className="bg-brand absolute -right-14 -top-24 size-56 rounded-full opacity-20 blur-3xl" />
         <div className="relative flex items-center gap-3.5">
           <img src="/icon-192.png" alt="" className="size-14 rounded-panel shadow-[var(--shadow-thumb)]" />
           <div className="min-w-0">
-            <div className="text-[19px] font-bold tracking-[-0.01em] text-ink">{SITE.name}</div>
-            <div className="mt-0.5 line-clamp-2 text-[13px] leading-relaxed text-ink-4">{SITE.description}</div>
+            <div className="text-20 font-bold tracking-[-0.01em] text-ink">{SITE.name}</div>
+            <div className="mt-0.5 line-clamp-2 text-13 leading-relaxed text-ink-4">{SITE.description}</div>
           </div>
         </div>
       </section>
       <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-4 2xl:grid-cols-3">
         <Group>
           <RowLink row={{ to: "/starred", label: "收藏", icon: <IconBookmark size={20} />, detail: here && starred.length > 0 ? <span className="num">{starred.length}</span> : undefined }} />
-          <li className="flex min-h-[56px] items-center gap-3 px-4 text-[16px] font-medium text-ink">
+          <li className="flex min-h-[56px] items-center gap-3 px-4 text-16 font-medium text-ink">
             <span className="text-ink-3">
               <IconMoon size={20} />
             </span>
@@ -107,7 +107,7 @@ export default function MorePage() {
           <RowLink row={{ to: "/feedback", label: "意见反馈", icon: <IconMessage size={20} /> }} />
         </Group>
       </div>
-      <div className="mt-6 flex flex-wrap justify-center gap-x-4 gap-y-1 text-[12px] leading-[2] text-ink-4">
+      <div className="mt-6 flex flex-wrap justify-center gap-x-4 gap-y-1 text-12 leading-[2] text-ink-4">
         <Link viewTransition to="/terms" className="hover:text-ink-2">{POLICY.terms.name}</Link>
         <Link viewTransition to="/privacy" className="hover:text-ink-2">隐私说明</Link>
         <a href="/feed.xml" className="hover:text-ink-2">RSS</a>

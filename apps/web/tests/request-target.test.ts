@@ -54,5 +54,6 @@ test("origin-form slashes keep the router's homepage and unknown-route semantics
     }
   }
   assert.equal(web.logs(), "");
-  assert.ok(upstreamPaths.every((path) => path.startsWith("/api/site/")));
+  // Every read stays an api address (the home page also reads its modules' parts, such as /api/videos).
+  assert.ok(upstreamPaths.every((path) => path.startsWith("/api/")), upstreamPaths.join(" "));
 });

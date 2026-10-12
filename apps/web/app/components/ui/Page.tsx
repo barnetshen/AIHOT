@@ -46,7 +46,7 @@ export function ArticleLayout({ children, left, right }: { children: ReactNode; 
 export function RailSection({ title, children }: { title?: ReactNode; children: ReactNode }) {
   return (
     <section className="border-t border-line pt-3.5">
-      {title && <h2 className="text-[12px] font-semibold text-ink-3">{title}</h2>}
+      {title && <h2 className="text-12 font-semibold text-ink-3">{title}</h2>}
       <div className={title ? "mt-2.5" : undefined}>{children}</div>
     </section>
   );
@@ -56,7 +56,7 @@ export function RailSection({ title, children }: { title?: ReactNode; children: 
 export function AsideCard({ title, children, className = "" }: { title: ReactNode; children: ReactNode; className?: string }) {
   return (
     <section className={`card p-5 ${className}`}>
-      <h2 className="text-[13px] font-semibold text-ink">{title}</h2>
+      <h2 className="text-13 font-semibold text-ink">{title}</h2>
       <div className="mt-3">{children}</div>
     </section>
   );
@@ -65,7 +65,7 @@ export function AsideCard({ title, children, className = "" }: { title: ReactNod
 /** "完整榜单 →" style link used in card headers. */
 export function MoreLink({ to, children }: { to: string; children: ReactNode }) {
   return (
-    <Link viewTransition to={to} className="inline-flex items-center gap-0.5 whitespace-nowrap text-[12px] font-semibold text-accent hover:text-accent-ink">
+    <Link viewTransition to={to} className="inline-flex items-center gap-0.5 whitespace-nowrap text-12 font-semibold text-accent hover:text-accent-ink">
       {children}
       <IconChevronRight size={13} />
     </Link>
@@ -81,8 +81,8 @@ export function EmptyState({ title, children, action }: { title: ReactNode; chil
         <span className="absolute inset-[-6px] rounded-full border border-accent/10" />
         <RingMark className="size-7" />
       </span>
-      <div className="text-[15px] font-semibold text-ink-2">{title}</div>
-      {children && <p className="mt-1.5 max-w-sm text-[13px] leading-relaxed text-ink-4">{children}</p>}
+      <div className="text-15 font-semibold text-ink-2">{title}</div>
+      {children && <p className="mt-1.5 max-w-sm text-13 leading-relaxed text-ink-4">{children}</p>}
       {action && <div className="mt-4">{action}</div>}
     </div>
   );

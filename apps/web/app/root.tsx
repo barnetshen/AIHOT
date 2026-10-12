@@ -16,7 +16,7 @@ import { usePageTransition } from "./components/shell/transitions";
 import { SearchOverlay } from "./features/search/SearchOverlay";
 import { BackToTop, NavigationProgress } from "./components/shell/Chrome";
 import { buttonClass } from "./components/ui/Controls";
-import { rememberPage, THEME_BOOT_SCRIPT, useThemeSync } from "./lib/local-state";
+import { rememberPage, THEME_BOOT_SCRIPT, THEME_COLOR, useThemeSync } from "./lib/local-state";
 import { apiGet } from "./lib/api.server";
 import { useHydratedFlag } from "./lib/hydration";
 import { titled } from "./lib/seo";
@@ -55,8 +55,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta charSet="utf-8" />
         {documentRelease && <meta name="aihot-release" content={documentRelease} />}
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-        <meta name="theme-color" media="(prefers-color-scheme: light)" content="#faf9f6" />
-        <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#13191c" />
+        <meta name="theme-color" media="(prefers-color-scheme: light)" content={THEME_COLOR.light} />
+        <meta name="theme-color" media="(prefers-color-scheme: dark)" content={THEME_COLOR.dark} />
         <meta name="apple-mobile-web-app-title" content={SITE.name} />
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
         {webModules().map((m) => m.root?.bootScript && <script key={m.name} dangerouslySetInnerHTML={{ __html: m.root.bootScript }} />)}
@@ -145,9 +145,9 @@ export function ErrorBoundary() {
     <div className="flex min-h-[70vh] items-center justify-center px-2 py-16">
       <div className="max-w-sm text-center">
         <RingMark className="mx-auto mb-5 size-10 text-accent" />
-        <div className="mono text-[12px] text-ink-4">{status}</div>
-        <h1 className="mt-1.5 text-[20px] font-bold text-ink">{notFound ? "这里没有内容" : "暂时无法加载"}</h1>
-        <p className="mt-2 text-[13.5px] leading-relaxed text-ink-3">
+        <div className="mono text-12 text-ink-4">{status}</div>
+        <h1 className="mt-1.5 text-20 font-bold text-ink">{notFound ? "这里没有内容" : "暂时无法加载"}</h1>
+        <p className="mt-2 text-14 leading-relaxed text-ink-3">
           {notFound ? "你访问的页面不存在，或内容已不再公开。" : "页面暂时无法显示，请重新加载后再试。"}
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2.5">

@@ -105,7 +105,7 @@ function FilterSheet({ open, onClose, base, active }: { open: boolean; onClose: 
                 to={o.to}
                 onClick={onClose}
                 aria-current={on ? "true" : undefined}
-                className={`-mx-2 flex h-12 items-center justify-between rounded-tile px-2 text-[16px] transition-colors active:bg-bg-sunk ${on ? "font-semibold text-accent" : "text-ink"}`}
+                className={`-mx-2 flex h-12 items-center justify-between rounded-tile px-2 text-16 transition-colors active:bg-bg-sunk ${on ? "font-semibold text-accent" : "text-ink"}`}
               >
                 {o.label}
                 {on && <IconCheck size={19} strokeWidth={2.2} />}
@@ -123,7 +123,7 @@ export function ActiveFilters({ base, category, channel, tag }: { base: string; 
   const [params] = useSearchParams();
   const label = channel === "firstParty" ? CHANNEL_LABELS.firstParty : category ? CATEGORY_LABELS[category] : null;
   if (!label && !tag) return null;
-  const chip = "inline-flex min-h-11 max-w-full items-center gap-1 rounded-full bg-accent-soft pl-3 pr-2 text-[13px] font-medium text-accent transition-opacity active:opacity-60";
+  const chip = "inline-flex min-h-11 max-w-full items-center gap-1 rounded-full bg-accent-soft pl-3 pr-2 text-13 font-medium text-accent transition-opacity active:opacity-60";
   return (
     <div className="flex flex-wrap gap-2 pb-3 pt-1 lg:hidden">
       {label && (
@@ -190,7 +190,7 @@ export function SearchField({ defaultValue = "", keep = {} }: { defaultValue?: s
         placeholder="搜索标题、摘要…"
         maxLength={200}
         autoComplete="off"
-        className="h-[42px] w-full rounded-full bg-bg-sunk pl-10 pr-10 text-[14px] text-ink outline-none ring-1 ring-inset ring-line-soft transition-[background-color,box-shadow] placeholder:text-ink-4 hover:ring-line-strong focus:bg-surface focus:shadow-[0_0_0_3px_var(--accent-soft)] focus:ring-accent dark:bg-bg-muted/60 dark:focus:bg-surface"
+        className="h-[42px] w-full rounded-full bg-bg-sunk pl-10 pr-10 text-14 text-ink outline-none ring-1 ring-inset ring-line-soft transition-[background-color,box-shadow] placeholder:text-ink-4 hover:ring-line-strong focus:bg-surface focus:shadow-[0_0_0_3px_var(--accent-soft)] focus:ring-accent dark:bg-bg-muted/60 dark:focus:bg-surface"
       />
       {value ? (
         <button
@@ -205,7 +205,7 @@ export function SearchField({ defaultValue = "", keep = {} }: { defaultValue?: s
           <IconClose size={13} />
         </button>
       ) : (
-        <kbd className="mono pointer-events-none absolute right-4 top-1/2 hidden -translate-y-1/2 rounded-mark border border-line-strong bg-surface px-1.5 text-[10.5px] leading-4 text-ink-4 lg:block">/</kbd>
+        <kbd className="mono pointer-events-none absolute right-4 top-1/2 hidden -translate-y-1/2 rounded-mark border border-line-strong bg-surface px-1.5 text-11 leading-4 text-ink-4 lg:block">/</kbd>
       )}
     </Form>
   );

@@ -39,10 +39,10 @@ export function DayHeader({ day, today, count, collapsed, onToggle, aside }: { d
   const phoneRow = (
     <>
       {day === today && <span aria-hidden="true" className="bg-brand size-1.5 rounded-full shadow-[0_0_0_3px_var(--accent-soft)]" />}
-      <span className="text-[15px] font-bold tracking-[-0.01em] text-ink">{day === today ? "今天" : date}</span>
-      {day === today && <span className="text-[12.5px] text-ink-4">{date}</span>}
-      <span className="text-[12.5px] text-ink-4">{short}</span>
-      <span className="ml-auto flex items-center gap-1 text-[12.5px] text-ink-4">
+      <span className="text-15 font-bold tracking-[-0.01em] text-ink">{day === today ? "今天" : date}</span>
+      {day === today && <span className="text-13 text-ink-4">{date}</span>}
+      <span className="text-13 text-ink-4">{short}</span>
+      <span className="ml-auto flex items-center gap-1 text-13 text-ink-4">
         {aside}
         {count !== null && (
           <span className="rounded-full bg-surface px-2 py-0.5 ring-1 ring-line-soft dark:bg-raised">
@@ -66,11 +66,11 @@ export function DayHeader({ day, today, count, collapsed, onToggle, aside }: { d
       {/* Desktop: date text shares the page's left edge, regardless of how many digits it has. */}
       <div className="hidden h-11 items-center gap-3 lg:flex">
         {onToggle ? (
-          <button type="button" onClick={onToggle} aria-expanded={!collapsed} className="whitespace-nowrap text-left text-[19px] font-bold leading-6 tracking-[-0.01em] text-ink">
+          <button type="button" onClick={onToggle} aria-expanded={!collapsed} className="whitespace-nowrap text-left text-20 font-bold leading-6 tracking-[-0.01em] text-ink">
             {date}
           </button>
         ) : (
-          <time dateTime={day} className="whitespace-nowrap text-[19px] font-bold leading-6 tracking-[-0.01em] text-ink">{date}</time>
+          <time dateTime={day} className="whitespace-nowrap text-20 font-bold leading-6 tracking-[-0.01em] text-ink">{date}</time>
         )}
         {onToggle ? (
           <button
@@ -83,7 +83,7 @@ export function DayHeader({ day, today, count, collapsed, onToggle, aside }: { d
             <IconChevronDown size={14} className={`transition-transform duration-200 ${collapsed ? "-rotate-90" : ""}`} />
           </button>
         ) : null}
-        <span className="text-[13px] text-ink-4">
+        <span className="text-13 text-ink-4">
           {weekday}
           {count !== null && (
             <>
@@ -92,7 +92,7 @@ export function DayHeader({ day, today, count, collapsed, onToggle, aside }: { d
             </>
           )}
         </span>
-        {aside && <span className="ml-auto text-[12px] text-ink-4">{aside}</span>}
+        {aside && <span className="ml-auto text-12 text-ink-4">{aside}</span>}
       </div>
     </div>
   );
@@ -111,7 +111,7 @@ export function TimelineSlot({ at, children, fresh = false, delay = 0, dataKey }
     >
       {/* Phones: a card without the rail (the item shows its time), pressing in a little under the finger. */}
       <div className="grid grid-cols-[minmax(0,1fr)] rounded-card bg-surface px-4 py-3.5 shadow-[var(--shadow-card)] ring-1 ring-line-soft transition-transform duration-150 ease-[var(--ease-out-quart)] touch:has-[a:active]:scale-[0.985] lg:grid-cols-[64px_22px_minmax(0,1fr)] lg:rounded-none lg:bg-transparent lg:p-0 lg:pb-3 lg:shadow-none lg:ring-0 lg:group-last/slot:pb-0 lg:touch:has-[a:active]:scale-100">
-        <time dateTime={at} className="mono hidden text-ink-3 lg:block lg:pt-[17px] lg:text-[12.5px] lg:font-semibold lg:leading-6">
+        <time dateTime={at} className="mono hidden text-ink-3 lg:block lg:pt-[17px] lg:text-13 lg:font-semibold lg:leading-6">
           {beijingTime(at)}
         </time>
         <span aria-hidden="true" className="relative hidden lg:block">
@@ -321,21 +321,21 @@ function FeedEnd({ loading, error, hasMore, manual, empty, onMore }: { loading: 
   return (
     <div className="flex justify-center py-6">
       {loading ? (
-        <span className="inline-flex items-center gap-2 text-[12.5px] text-ink-4">
+        <span className="inline-flex items-center gap-2 text-13 text-ink-4">
           <RingMark className="size-4 text-accent" spinning /> 正在加载
         </span>
       ) : error ? (
-        <button type="button" onClick={onMore} className="h-9 rounded-full border border-hot/30 px-4 text-[13px] text-hot hover:bg-hot-soft">
+        <button type="button" onClick={onMore} className="h-9 rounded-full border border-hot/30 px-4 text-13 text-hot hover:bg-hot-soft">
           加载失败，点此重试
         </button>
       ) : hasMore ? (
         manual && (
-          <button type="button" onClick={onMore} className="h-9 rounded-full border border-line-strong bg-surface px-5 text-[13px] font-medium text-ink-2 transition-colors hover:border-ink-4 hover:text-ink">
+          <button type="button" onClick={onMore} className="h-9 rounded-full border border-line-strong bg-surface px-5 text-13 font-medium text-ink-2 transition-colors hover:border-ink-4 hover:text-ink">
             加载更多
           </button>
         )
       ) : (
-        !empty && <span className="text-[12px] text-ink-4">已经到底了</span>
+        !empty && <span className="text-12 text-ink-4">已经到底了</span>
       )}
     </div>
   );

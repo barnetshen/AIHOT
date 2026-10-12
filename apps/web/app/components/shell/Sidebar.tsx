@@ -25,7 +25,7 @@ function SideLink({ item, dot }: { item: NavItem; dot: boolean }) {
       to={item.to}
       prefetch="intent"
       aria-current={isActive ? "page" : undefined}
-      className={`group relative flex h-10 items-center gap-3 rounded-tile px-3 text-[14px] transition-[background-color,color,box-shadow] duration-200 ${
+      className={`group relative flex h-10 items-center gap-3 rounded-tile px-3 text-14 transition-[background-color,color,box-shadow] duration-200 ${
         isActive ? "bg-surface font-semibold text-ink shadow-[var(--shadow-card)] ring-1 ring-line-soft dark:bg-raised" : "font-medium text-ink-3 hover:bg-surface/70 hover:text-ink dark:hover:bg-raised/60"
       }`}
     >
@@ -46,7 +46,7 @@ export function Sidebar({ changelogVersion }: { changelogVersion: string | null 
       <Link to="/" className="mb-3 flex h-[50px] items-center gap-2 px-2 text-ink" aria-label={`${SITE.name} 首页`}>
         <Wordmark size={26} />
       </Link>
-      <p className="mb-2 flex items-center gap-1.5 px-2 text-[11.5px] text-ink-4">
+      <p className="mb-2 flex items-center gap-1.5 px-2 text-12 text-ink-4">
         <span aria-hidden="true" className="relative flex size-1.5">
           <span className="bg-brand absolute inset-0 animate-ping rounded-full opacity-60" />
           <span className="bg-brand relative size-1.5 rounded-full" />
@@ -56,7 +56,7 @@ export function Sidebar({ changelogVersion }: { changelogVersion: string | null 
       <nav className="scrollbar-thin -mx-4 flex-1 overflow-y-auto px-4" aria-label="主导航">
         {sidebar().map((section) => (
           <div key={section.title}>
-            <div className="px-3 pb-1.5 pt-5 text-[11px] font-semibold tracking-[0.08em] text-ink-4">{section.title}</div>
+            <div className="px-3 pb-1.5 pt-5 text-11 font-semibold tracking-[0.08em] text-ink-4">{section.title}</div>
             <div className="flex flex-col gap-0.5">
               {section.items.map((item) => (
                 <SideLink key={item.to} item={item} dot={dot} />
@@ -71,7 +71,7 @@ export function Sidebar({ changelogVersion }: { changelogVersion: string | null 
             href={SITE.github}
             target="_blank"
             rel="noopener noreferrer"
-            className="mx-1 flex h-[34px] items-center justify-center gap-1.5 rounded-full border border-line text-[12.5px] text-ink-3 transition-colors hover:bg-bg-sunk hover:text-ink"
+            className="mx-1 flex h-[34px] items-center justify-center gap-1.5 rounded-full border border-line text-13 text-ink-3 transition-colors hover:bg-bg-sunk hover:text-ink"
           >
             <IconGithub size={14} />
             GitHub 开源
@@ -79,7 +79,7 @@ export function Sidebar({ changelogVersion }: { changelogVersion: string | null 
         )}
         <ThemeSwitch className="mx-1" />
         {SITE.icp && (
-          <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer" className="block px-2 text-[10px] text-ink-4 hover:text-ink-3">
+          <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer" className="block px-2 text-11 text-ink-4 hover:text-ink-3">
             {SITE.icp}
           </a>
         )}

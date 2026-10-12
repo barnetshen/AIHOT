@@ -51,9 +51,9 @@ export interface TabItem {
 }
 
 const SIZES = {
-  md: "h-11 px-4 text-[14px] lg:h-9",
-  sm: "h-11 px-3.5 text-[13px] lg:h-8",
-  xs: "h-11 px-3 text-[12.5px] lg:h-7",
+  md: "h-11 px-4 text-14 lg:h-9",
+  sm: "h-11 px-3.5 text-13 lg:h-8",
+  xs: "h-11 px-3 text-13 lg:h-7",
 } as const;
 
 /**
