@@ -25,9 +25,11 @@ export interface FeedItemProps {
   showTags?: boolean;
   /** The time the item sits at in its list; phones show it in the source line (desktop: on the rail). */
   at?: string;
+  /** In the 精选 feed, where every item is a pick: the 精选 mark would say nothing (同一新闻 still shows). */
+  inPicks?: boolean;
 }
 
-export const FeedItem = memo(function FeedItem({ item, group, filters, read = false, onOpen, showTags = false, at }: FeedItemProps) {
+export const FeedItem = memo(function FeedItem({ item, group, filters, read = false, onOpen, showTags = false, at, inPicks = false }: FeedItemProps) {
   const isX = item.channel === "x" && !!item.x;
   const open = () => {
     rememberPreview(item);
@@ -45,7 +47,7 @@ export const FeedItem = memo(function FeedItem({ item, group, filters, read = fa
             · {beijingTime(at)}
           </time>
         )}
-        {item.selected && (
+        {item.selected && (item.sameEvent || !inPicks) && (
           <span className="hidden lg:inline-flex">
             {item.sameEvent ? <SameEventBadge /> : <SelectedBadge />}
           </span>

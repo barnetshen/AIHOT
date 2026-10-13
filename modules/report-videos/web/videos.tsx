@@ -7,32 +7,57 @@
 // The next broadcast is announced over the last seconds of one; the last ends on a card.
 // Motion follows the reader's reduced-motion setting.
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
-import { Link, useLoaderData, useSearchParams } from "react-router";
+import { data, Link, useLoaderData, useNavigate, useParams, useSearchParams } from "react-router";
 import { EDITION_WHEN, SITE, withSubject } from "@aihot/site";
 import { apiGet, cachedPage } from "@aihot/web/lib/api.server";
 import { pageReuse } from "@aihot/web/lib/page-reuse";
-import { pageMeta } from "@aihot/web/lib/seo";
+import { pageMeta, siteUrl } from "@aihot/web/lib/seo";
 import { copyText } from "@aihot/web/lib/clipboard";
 import { IconArrowLeft, IconChevronDown, IconDoc, IconDownload, IconList, IconShare } from "@aihot/web/components/icons";
 import type { Screen } from "@aihot/web/components/shell/screens";
 import type { Chapter, VideoEntry, VideoKind, VideosResponse } from "../types.ts";
+import { clock, entries, playerUrl } from "./shared.ts";
 
 export const handle: Screen = { tab: "videos", name: "视频播报", bare: true };
 export { pageHeaders as headers } from "@aihot/web/lib/api.server";
 export const { clientLoader, shouldRevalidate } = pageReuse<typeof loader>();
 
-export async function loader({ request }: { request: Request }) {
-  return cachedPage(60, await apiGet<VideosResponse>("/api/videos", { signal: request.signal }));
+/** The broadcast a page opens on: its own address (/videos/daily/2026-10-08), or ?kind=…&v=… on /videos as shared before. */
+type Opened = { kind: VideoKind; key: string } | null;
+
+export async function loader({ request, params }: { request: Request; params: { kind?: string; key?: string } }) {
+  const kind = params.kind === "daily" || params.kind === "weekly" ? params.kind : null;
+  if (params.kind && !kind) throw data({ message: "not_found" }, { status: 404 });
+  const opened: Opened = kind && params.key ? { kind, key: params.key } : null;
+  return cachedPage(60, { ...(await apiGet<VideosResponse>("/api/videos", { signal: request.signal })), opened });
 }
 
 const TITLE = `${withSubject("日报")}视频播报`;
 
-export function meta() {
-  return pageMeta({
-    title: TITLE,
-    description: `${SITE.name} 的日报与周报视频播报：主播口播每条要闻，配新闻自带的视频和图片，几分钟听完当天和本周，每条都可回到图文版看原文链接。`,
-    path: "/videos",
+export function meta({ loaderData }: { loaderData?: VideosResponse & { opened: Opened } }) {
+  const opened = loaderData?.opened;
+  const v = opened && loaderData[opened.kind].find((e) => e.key === opened.key);
+  if (!v) {
+    return pageMeta({
+      title: TITLE,
+      description: `${SITE.name} 的日报与周报视频播报：主播口播每条要闻，配新闻自带的视频和图片，几分钟听完当天和本周，每条都可回到图文版看原文链接。`,
+      path: "/videos",
+    });
+  }
+  // A shared broadcast previews as itself: its headline, and its cover (portrait) as the picture.
+  const label = `${withSubject(v.kind === "daily" ? "日报" : "周报")}视频播报`;
+  const tags = pageMeta({
+    title: `${v.headline ?? v.title} · ${label}`,
+    description: `${label} · ${v.period} · 第 ${v.issueNumber} 期：${entries(v)} 条要闻，${clock(v.durationSeconds)}。`,
+    path: playerUrl(v),
+    image: v.poster,
   });
+  const size: Record<string, string> = { "og:image:width": "1080", "og:image:height": "1920" };
+  return [
+    ...tags.map((t) => ("property" in t && typeof t.property === "string" && size[t.property] ? { ...t, content: size[t.property] } : t)),
+    { property: "og:video", content: `${siteUrl()}${v.video}` },
+    { property: "og:video:type", content: "video/mp4" },
+  ];
 }
 
 const KINDS: Array<{ kind: VideoKind; label: string; when: string }> = [
@@ -48,7 +73,6 @@ const HINT_KEY = "videos.swiped";
 /** Seconds before the end the next broadcast is announced. */
 const UP_NEXT = 5;
 
-const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 const chapterAt = (chapters: Chapter[], t: number) => chapters.findLastIndex((c) => c.at <= t + 0.05);
 const reducedMotion = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -293,7 +317,7 @@ function Slide({ v, active, near, next, muted, onNext, onShare, feed }: SlidePro
   return (
     <section ref={root} data-slide={v.key} aria-roledescription="视频" aria-label={headline} className="relative h-dvh w-full snap-start snap-always overflow-hidden bg-black">
       {/* Beside a narrow video (a wide screen), its own cover, blurred, fills the rest. */}
-      <div aria-hidden="true" className="absolute inset-0 scale-110 bg-cover bg-center opacity-50 blur-3xl" style={{ backgroundImage: `url(${v.poster})` }} />
+      <div aria-hidden="true" className="absolute inset-0 scale-110 bg-cover bg-center opacity-50 blur-3xl" style={{ backgroundImage: `url(${v.thumb})` }} />
       <video
         ref={ref}
         playsInline
@@ -357,7 +381,7 @@ function Slide({ v, active, near, next, muted, onNext, onShare, feed }: SlidePro
           className="vp-slide absolute right-3 top-[4.25rem] flex w-[15.5rem] items-center gap-2.5 rounded-tile bg-black/55 p-2 pr-3 text-left ring-1 ring-white/10 backdrop-blur-md transition-colors hover:bg-black/70 sm:right-[max(0.75rem,calc(50%-100dvh*9/32+0.75rem))]"
         >
           <span className="relative h-16 w-9 shrink-0 overflow-hidden rounded-mark bg-black">
-            <img src={next.poster} alt="" className="size-full object-cover" />
+            <img src={next.thumb} alt="" className="size-full object-cover" />
           </span>
           <span className="min-w-0 flex-1">
             <span className="num block text-11 text-white/65">{left} 秒后播放下一期</span>
@@ -511,7 +535,9 @@ function Slide({ v, active, near, next, muted, onNext, onShare, feed }: SlidePro
 export default function VideosPage() {
   const videos = useLoaderData<typeof loader>();
   const [params, setParams] = useSearchParams();
-  const current = KINDS.find((k) => k.kind === params.get("kind")) ?? KINDS[0]!;
+  const route = useParams();
+  const navigate = useNavigate();
+  const current = KINDS.find((k) => k.kind === (route.kind ?? params.get("kind"))) ?? KINDS[0]!;
   const list = videos[current.kind];
   const feed = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
@@ -526,7 +552,9 @@ export default function VideosPage() {
   const other = KINDS.find((k) => k !== current)!;
   const switchTo = (kind: VideoKind) => {
     setActive(0);
-    setParams(kind === KINDS[0]!.kind ? {} : { kind }, { replace: true, preventScrollReset: true });
+    // From one broadcast's own address, back to the feed's.
+    if (route.kind) navigate(kind === KINDS[0]!.kind ? "/videos" : `/videos?kind=${kind}`, { replace: true, preventScrollReset: true });
+    else setParams(kind === KINDS[0]!.kind ? {} : { kind }, { replace: true, preventScrollReset: true });
   };
 
   // The slide most in view is the one that plays.
@@ -535,8 +563,8 @@ export default function VideosPage() {
       for (const e of entries) if (e.isIntersecting) setActive(slides().indexOf(e.target as HTMLElement));
     }, { root: feed.current, threshold: 0.6 });
     for (const s of slides()) seen.observe(s);
-    // A shared address (?v=<key>) opens on its video.
-    const shared = slides().findIndex((s) => s.dataset.slide === params.get("v"));
+    // A shared address opens on its video.
+    const shared = slides().findIndex((s) => s.dataset.slide === (route.key ?? params.get("v")));
     if (shared > 0) slides()[shared]!.scrollIntoView({ block: "start" });
     return () => seen.disconnect();
   }, [current.kind]);
@@ -593,7 +621,7 @@ export default function VideosPage() {
   }, [toast]);
 
   const share = async (v: VideoEntry) => {
-    const url = `${location.origin}/videos?${new URLSearchParams({ ...(v.kind === "weekly" ? { kind: "weekly" } : {}), v: v.key })}`;
+    const url = `${location.origin}${playerUrl(v)}`;
     const text = `${v.headline ?? v.title} — ${SITE.name}${v.kind === "daily" ? "日报" : "周报"}视频播报`;
     if (navigator.share) {
       try {

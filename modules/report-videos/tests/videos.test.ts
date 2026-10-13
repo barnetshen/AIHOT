@@ -9,7 +9,7 @@
 import { tag } from "../../../tests/setup.ts";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import http from "node:http";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -150,6 +150,8 @@ test("a daily's broadcast reads every screen, shows the news' video and picture,
   const starts = shots.map((_, i) => shots.slice(0, i).reduce((n, s) => n + s, 0) - 0.5 * i);
   assert.ok(Math.abs(Number(info.format.duration) - (starts.at(-1)! + shots.at(-1)!)) < 0.2, "the video lasts as long as it is read");
   assert.ok(existsSync(fileOf(video.poster)), "the poster is written with it");
+  assert.match(video.thumb, /\.webp$/);
+  assert.deepEqual(await sharp(fileOf(video.thumb)).metadata().then((m) => [m.format, m.width]), ["webp", 480], "and a small one for the site's pages");
   assert.ok(await boxBrightness(fileOf(video.video), starts[1]! + 1.5) > 60, "the lead's video plays in its box");
   assert.ok(await boxBrightness(fileOf(video.video), starts[2]! + 1.5) > 150, "the second's picture fills its box");
   assert.ok(await boxBrightness(fileOf(video.video), 1) < 60, "the cover has none");
@@ -162,7 +164,12 @@ test("a daily's broadcast reads every screen, shows the news' video and picture,
   const late = await brightness(fileOf(video.video), starts[3]! + shots[3]! - 0.8, segment);
   assert.ok(late > early + 40, `the story bar fills (${early.toFixed(0)} → ${late.toFixed(0)})`);
 
+  // A video rendered before thumbnails shows its poster until the next run makes one.
+  rmSync(fileOf(video.thumb));
+  assert.equal((await listVideos()).daily.find((v) => v.key === DAILY)!.thumb, video.poster);
   assert.ok(!(await refreshVideos()).rendered.includes(`daily/${DAILY}`), "an unchanged issue keeps its video");
+  assert.ok(existsSync(fileOf(video.thumb)), "and gets its thumbnail");
+  assert.equal((await app.inject({ method: "GET", url: video.thumb })).headers["content-type"], "image/webp");
 
   // Seeking: one byte range, a range from the end, a range past it, the whole file, and HEAD.
   const size = video.bytes;
@@ -188,7 +195,7 @@ test("a daily's broadcast reads every screen, shows the news' video and picture,
   assert.ok(!read.some((text) => text.includes(third.title)), "the withdrawn report is not read");
   const [after] = (await listVideos()).daily.filter((v) => v.key === DAILY);
   assert.notEqual(after!.video, video.video, "the new video has a new address");
-  assert.ok(!existsSync(fileOf(video.video)) && !existsSync(fileOf(video.poster)), "the old files are removed");
+  assert.ok(!existsSync(fileOf(video.video)) && !existsSync(fileOf(video.poster)) && !existsSync(fileOf(video.thumb)), "the old files are removed");
   assert.equal((await app.inject({ method: "GET", url: video.video })).statusCode, 404);
 
   await sql`UPDATE publications SET visibility = 'withdrawn' WHERE article_id = ANY(${[lead.itemId, second.itemId]}::text[])`;

@@ -1,4 +1,4 @@
-import { useLoaderData } from "react-router";
+import { Link, useLoaderData } from "react-router";
 import { IntentLink } from "../components/ui/IntentLink";
 import type { HotEntryView, HotResponse } from "@aihot/contracts/site";
 import { subjectAfter, withSubject } from "@aihot/site";
@@ -282,7 +282,12 @@ export default function HotPage() {
 
       {!lead ? (
         <div className="card rounded-sheet">
-          <EmptyState title="暂时没有热点">还没有足够多来源共同讨论的事件。</EmptyState>
+          <EmptyState
+            title="暂时没有热点"
+            action={<Link to="/" className="inline-flex h-9 items-center rounded-full bg-accent px-4 text-13 font-semibold text-accent-contrast transition-transform active:scale-95">看今天的精选</Link>}
+          >
+            还没有足够多来源共同讨论的事件，先看看今天的精选。
+          </EmptyState>
         </div>
       ) : (
         <>

@@ -6,7 +6,7 @@
 	# The broadcast videos and their covers (modules/report-videos) straight from the data volume, with
 	# byte ranges for seeking, instead of through the web and api processes. Only finished files match:
 	# names the worker gives them, not its work folders. Anything else goes on to the api, which answers 404.
-	@video path_regexp ^/api/videos/files/(daily|weekly)-[0-9W-]+-[0-9a-f]{16}\.(mp4|jpg)$
+	@video path_regexp ^/api/videos/files/(daily|weekly)-[0-9W-]+-[0-9a-f]{16}\.(mp4|jpg|webp)$
 	handle @video {
 		uri strip_prefix /api/videos/files
 		root * /srv/aihot/videos

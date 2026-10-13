@@ -35,9 +35,12 @@ function pick(videos: VideosResponse, pathname: string): VideoEntry | null {
 /** The newest broadcast: closing the card lasts until it changes. */
 const newest = (videos: VideosResponse) => [...videos.daily, ...videos.weekly].reduce<VideoEntry | null>((a, v) => (!a || v.renderedAt > a.renderedAt ? v : a), null)?.video ?? "";
 
+/** The pages it can show on: the reports', latest and by issue. */
+const REPORT_PAGE = /^\/(daily|weekly)(\/[^/]+)?$/;
+
 export function VideoBubble() {
   const { pathname } = useLocation();
-  const videos = useVideos();
+  const videos = useVideos(REPORT_PAGE.test(pathname) && pathname !== "/daily/archive");
   const [closed, setClosed] = useState<string | null>(null);
   const [tucked, setTucked] = useState(false);
   const [peek, setPeek] = useState(true);
@@ -92,7 +95,7 @@ export function VideoBubble() {
           className="flex items-center rounded-card lg:border lg:border-line lg:bg-surface lg:p-1.5 lg:shadow-[var(--shadow-soft)] lg:transition-shadow lg:hover:shadow-[0_10px_30px_rgba(0,0,0,0.12)]"
         >
           <span className="relative block aspect-[9/16] w-[60px] shrink-0 overflow-hidden rounded-tile bg-black shadow-[0_8px_24px_rgba(0,0,0,0.28)] ring-2 ring-white lg:w-[58px] lg:rounded-tile lg:shadow-none lg:ring-0">
-            <img src={v.poster} alt="" className="vb-drift size-full object-cover" />
+            <img src={v.thumb} alt="" className="vb-drift size-full object-cover" />
             <span className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/75 to-transparent" />
             <span className="absolute left-1/2 top-1/2 flex size-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/85 pl-0.5 text-black transition-transform group-hover:scale-110">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z" /></svg>

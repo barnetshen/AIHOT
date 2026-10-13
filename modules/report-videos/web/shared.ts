@@ -7,21 +7,22 @@ import type { VideoEntry, VideosResponse } from "../types.ts";
 let loaded: Promise<VideosResponse | null> | null = null;
 const load = () => (loaded ??= fetch("/api/videos").then((r) => (r.ok ? (r.json() as Promise<VideosResponse>) : null), () => null));
 
-/** The broadcasts, once the browser has them (null until then, and on the server). */
-export function useVideos(): VideosResponse | null {
+/** The broadcasts, once the browser has them (null until then, on the server, and where not `wanted`). */
+export function useVideos(wanted: boolean): VideosResponse | null {
   const [videos, setVideos] = useState<VideosResponse | null>(null);
   useEffect(() => {
+    if (!wanted) return;
     let live = true;
     void load().then((v) => live && setVideos(v));
     return () => {
       live = false;
     };
-  }, []);
-  return videos;
+  }, [wanted]);
+  return wanted ? videos : null;
 }
 
-/** The player, opened on this broadcast. */
-export const playerUrl = (v: VideoEntry) => `/videos?${new URLSearchParams({ ...(v.kind === "weekly" ? { kind: "weekly" } : {}), v: v.key })}`;
+/** The player, opened on this broadcast: its own address, which is also what is shared. */
+export const playerUrl = (v: Pick<VideoEntry, "kind" | "key">) => `/videos/${v.kind}/${v.key}`;
 
 export const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 

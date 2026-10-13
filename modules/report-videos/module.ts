@@ -5,6 +5,7 @@ import { defineModule } from "@aihot/contracts/modules";
 
 export default defineModule({
   name: "report-videos",
-  pages: [{ path: "videos", file: "web/videos.tsx" }],
+  // One broadcast's own address (/videos/daily/2026-10-08) is what is shared: its preview shows its cover.
+  pages: [{ path: "videos", file: "web/videos.tsx" }, { path: "videos/:kind/:key", file: "web/videos.tsx", id: "videos-one" }],
   apiPaths: [/^\/api\/videos(?:\/|$)/],
 });

@@ -58,7 +58,7 @@ export function VideoStrip({ data }: { data: unknown }) {
               aria-label={`看${kindLabel(v)}视频播报：${v.headline ?? v.title}`}
               className="group relative block aspect-[3/4] w-[116px] overflow-hidden rounded-tile bg-black shadow-[var(--shadow-card)] ring-1 ring-line-soft transition-transform duration-200 active:scale-95 lg:w-[132px]"
             >
-              <img src={v.poster} alt="" loading="lazy" className="size-full object-cover object-top transition-transform duration-500 group-hover:scale-105" />
+              <img src={v.thumb} alt="" loading="lazy" className="size-full object-cover object-top transition-transform duration-500 group-hover:scale-105" />
               <span className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
               {i === 0 && <span className="bg-brand absolute left-1.5 top-1.5 rounded-full px-1.5 py-px text-11 font-bold text-white shadow">最新</span>}
               <span className="absolute inset-x-2 bottom-1.5 text-white">
@@ -88,7 +88,7 @@ export function VideoRail({ data }: { data: unknown }) {
         aria-label={`看${kindLabel(lead)}视频播报：${lead.headline ?? lead.title}`}
         className="group relative mt-1.5 block aspect-[4/5] overflow-hidden rounded-card bg-black shadow-[var(--shadow-soft)]"
       >
-        <img src={lead.poster} alt="" className="size-full object-cover object-top transition-transform duration-700 ease-[var(--ease-out-quart)] group-hover:scale-[1.04]" />
+        <img src={lead.thumb} alt="" loading="lazy" className="size-full object-cover object-top transition-transform duration-700 ease-[var(--ease-out-quart)] group-hover:scale-[1.04]" />
         <span className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent" />
         {/* The cover keeps its own words in view; the play mark comes up under the pointer. */}
         <span className="absolute inset-0 flex items-center justify-center bg-black/25 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100">
@@ -110,7 +110,7 @@ export function VideoRail({ data }: { data: unknown }) {
             <li key={`${v.kind}-${v.key}`}>
               <Link to={playerUrl(v)} className="group -mx-2 flex items-center gap-3 rounded-tile px-2 py-2 transition-colors hover:bg-surface dark:hover:bg-raised">
                 <span className="relative block h-[52px] w-[39px] shrink-0 overflow-hidden rounded-mark bg-black">
-                  <img src={v.poster} alt="" loading="lazy" className="size-full object-cover object-top" />
+                  <img src={v.thumb} alt="" loading="lazy" className="size-full object-cover object-top" />
                   <span className="absolute inset-0 flex items-center justify-center text-white/90 opacity-0 transition-opacity group-hover:opacity-100">
                     <PlayGlyph size={14} />
                   </span>
