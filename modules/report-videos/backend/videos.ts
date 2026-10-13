@@ -6,7 +6,7 @@
 // rather than keep showing what was withdrawn, and so does one whose render failed; videos of issues
 // older than the kept ones are removed.
 import { randomUUID } from "node:crypto";
-import { mkdir, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
+import { access, mkdir, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 import type { ReportDetail } from "@aihot/contracts/site";
@@ -26,12 +26,18 @@ export const VIDEO_DIR = path.join(config.dataDir, "videos");
 export const KEEP: Record<VideoKind, number> = { daily: 14, weekly: 8 };
 /** Videos rendered in one run at most, newest first, so catching up after a pause spreads over runs. */
 const PER_RUN = 3;
-/** A file of ours: the issue, the fingerprint and the extension. */
-export const FILE_NAME = /^(daily|weekly)-([0-9W-]+)-([0-9a-f]{16})\.(mp4|jpg)$/;
+/** A file of ours: the issue, the fingerprint and the extension (the video, its poster, and the poster's thumbnail). */
+export const FILE_NAME = /^(daily|weekly)-([0-9W-]+)-([0-9a-f]{16})\.(mp4|jpg|webp)$/;
+/** The thumbnail's width: the site's own pages show the cover a few hundred pixels wide at most. */
+const THUMB_WIDTH = 480;
 /** The pause after a screen's narration before the next screen fades in. */
 const PAUSE = 0.6;
 
-const fileOf = (kind: VideoKind, key: string, fingerprint: string, ext: "mp4" | "jpg") => `${kind}-${key}-${fingerprint}.${ext}`;
+const EXTS = ["mp4", "jpg", "webp"] as const;
+const fileOf = (kind: VideoKind, key: string, fingerprint: string, ext: (typeof EXTS)[number]) => `${kind}-${key}-${fingerprint}.${ext}`;
+
+/** The poster made small (WebP), for the strip, the side column and the floating card. */
+const thumbnail = (poster: string, out: string) => sharp(poster).resize(THUMB_WIDTH).webp({ quality: 72 }).toFile(out);
 
 interface Row {
   kind: VideoKind;
@@ -113,8 +119,10 @@ async function render(kind: VideoKind, key: string, scenes: Scene[], fingerprint
     await encode(shots, video);
     // The poster is the cover as it looks once everything has come in.
     await sharp(await renderStill(scenes[0]!)).jpeg({ quality: 82 }).toFile(path.join(work, "poster.jpg"));
+    await thumbnail(path.join(work, "poster.jpg"), path.join(work, "poster.webp"));
     const mp4 = path.join(VIDEO_DIR, fileOf(kind, key, fingerprint, "mp4"));
     await rename(path.join(work, "poster.jpg"), path.join(VIDEO_DIR, fileOf(kind, key, fingerprint, "jpg")));
+    await rename(path.join(work, "poster.webp"), path.join(VIDEO_DIR, fileOf(kind, key, fingerprint, "webp")));
     await rename(video, mp4);
     return {
       durationMs: Math.round(totalSeconds(shots.map((s) => s.seconds)) * 1000), bytes: (await stat(mp4)).size,
@@ -126,7 +134,7 @@ async function render(kind: VideoKind, key: string, scenes: Scene[], fingerprint
 }
 
 async function removeFiles(row: Pick<Row, "kind" | "key" | "fingerprint">) {
-  for (const ext of ["mp4", "jpg"] as const) await rm(path.join(VIDEO_DIR, fileOf(row.kind, row.key, row.fingerprint, ext)), { force: true });
+  for (const ext of EXTS) await rm(path.join(VIDEO_DIR, fileOf(row.kind, row.key, row.fingerprint, ext)), { force: true });
 }
 
 async function drop(row: Row) {
@@ -153,6 +161,9 @@ export async function refreshVideos(): Promise<{ rendered: string[]; removed: st
       const fingerprint = fingerprintOf(scenes);
       const row = have.get(id);
       if (row?.fingerprint === fingerprint) {
+        // A video rendered before thumbnails were made gets its own now.
+        const thumb = path.join(VIDEO_DIR, fileOf(kind, key, fingerprint, "webp"));
+        if (!(await exists(thumb))) await thumbnail(path.join(VIDEO_DIR, fileOf(kind, key, fingerprint, "jpg")), thumb);
         kept.add(id);
         continue;
       }
@@ -196,18 +207,26 @@ async function upsert(report: ReportDetail, scenes: Scene[], fingerprint: string
 
 /** Files no row names (a run stopped half way): a work folder or a video whose row was never written. */
 async function removeStrays() {
-  const named = new Set((await sql<Row[]>`SELECT kind, key, fingerprint FROM report_videos`).flatMap((r) => [fileOf(r.kind, r.key, r.fingerprint, "mp4"), fileOf(r.kind, r.key, r.fingerprint, "jpg")]));
+  const named = new Set((await sql<Row[]>`SELECT kind, key, fingerprint FROM report_videos`).flatMap((r) => EXTS.map((ext) => fileOf(r.kind, r.key, r.fingerprint, ext))));
   for (const name of await readdir(VIDEO_DIR)) if (!named.has(name)) await rm(path.join(VIDEO_DIR, name), { recursive: true, force: true });
 }
+
+const exists = (file: string) => access(file).then(() => true, () => false);
 
 /** The videos there are, newest first by kind. */
 export async function listVideos(): Promise<VideosResponse> {
   const rows = await sql<Row[]>`SELECT * FROM report_videos ORDER BY key DESC`;
+  // Until the worker's next run has made a thumbnail for a video rendered before them, the poster stands in.
+  const thumbs = new Set((await Promise.all(rows.map(async (r) => {
+    const name = fileOf(r.kind, r.key, r.fingerprint, "webp");
+    return (await exists(path.join(VIDEO_DIR, name))) ? name : null;
+  }))).filter(Boolean));
   const entry = (r: Row): VideoEntry => ({
     kind: r.kind, key: r.key, issueNumber: r.issue_number, title: r.title, headline: r.headline, period: periodLabel(r.kind, r.key),
     durationSeconds: Math.round(r.duration_ms / 1000), bytes: Number(r.bytes), clips: r.clips, pictures: r.pictures, chapters: r.chapters ?? [],
     video: `/api/videos/files/${fileOf(r.kind, r.key, r.fingerprint, "mp4")}`,
     poster: `/api/videos/files/${fileOf(r.kind, r.key, r.fingerprint, "jpg")}`,
+    thumb: `/api/videos/files/${fileOf(r.kind, r.key, r.fingerprint, thumbs.has(fileOf(r.kind, r.key, r.fingerprint, "webp")) ? "webp" : "jpg")}`,
     page: `/${r.kind}/${r.key}`, renderedAt: r.rendered_at.toISOString(),
   });
   return { daily: rows.filter((r) => r.kind === "daily").map(entry), weekly: rows.filter((r) => r.kind === "weekly").map(entry) };

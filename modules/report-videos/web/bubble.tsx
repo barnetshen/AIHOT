@@ -35,9 +35,12 @@ function pick(videos: VideosResponse, pathname: string): VideoEntry | null {
 /** The newest broadcast: closing the card lasts until it changes. */
 const newest = (videos: VideosResponse) => [...videos.daily, ...videos.weekly].reduce<VideoEntry | null>((a, v) => (!a || v.renderedAt > a.renderedAt ? v : a), null)?.video ?? "";
 
+/** The pages it can show on: the reports', latest and by issue. */
+const REPORT_PAGE = /^\/(daily|weekly)(\/[^/]+)?$/;
+
 export function VideoBubble() {
   const { pathname } = useLocation();
-  const videos = useVideos();
+  const videos = useVideos(REPORT_PAGE.test(pathname) && pathname !== "/daily/archive");
   const [closed, setClosed] = useState<string | null>(null);
   const [tucked, setTucked] = useState(false);
   const [peek, setPeek] = useState(true);
@@ -89,27 +92,27 @@ export function VideoBubble() {
         <Link
           to={to}
           aria-label={`看${kind}视频播报：${v.headline ?? v.title}`}
-          className="flex items-center rounded-2xl lg:border lg:border-line lg:bg-surface lg:p-1.5 lg:shadow-[var(--shadow-soft)] lg:transition-shadow lg:hover:shadow-[0_10px_30px_rgba(0,0,0,0.12)]"
+          className="flex items-center rounded-card lg:border lg:border-line lg:bg-surface lg:p-1.5 lg:shadow-[var(--shadow-soft)] lg:transition-shadow lg:hover:shadow-[0_10px_30px_rgba(0,0,0,0.12)]"
         >
-          <span className="relative block aspect-[9/16] w-[60px] shrink-0 overflow-hidden rounded-[14px] bg-black shadow-[0_8px_24px_rgba(0,0,0,0.28)] ring-2 ring-white lg:w-[58px] lg:rounded-xl lg:shadow-none lg:ring-0">
-            <img src={v.poster} alt="" className="vb-drift size-full object-cover" />
+          <span className="relative block aspect-[9/16] w-[60px] shrink-0 overflow-hidden rounded-tile bg-black shadow-[0_8px_24px_rgba(0,0,0,0.28)] ring-2 ring-white lg:w-[58px] lg:rounded-tile lg:shadow-none lg:ring-0">
+            <img src={v.thumb} alt="" className="vb-drift size-full object-cover" />
             <span className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/75 to-transparent" />
             <span className="absolute left-1/2 top-1/2 flex size-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/85 pl-0.5 text-black transition-transform group-hover:scale-110">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z" /></svg>
             </span>
-            <span className="num absolute bottom-1 inset-x-0 text-center text-[10px] font-medium text-white">{clock(v.durationSeconds)}</span>
+            <span className="num absolute bottom-1 inset-x-0 text-center text-11 font-medium text-white">{clock(v.durationSeconds)}</span>
           </span>
           <span className={`hidden overflow-hidden transition-[max-width,opacity] duration-500 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none lg:block lg:group-hover:max-w-[15rem] lg:group-hover:opacity-100 lg:group-focus-within:max-w-[15rem] lg:group-focus-within:opacity-100 ${peek ? "max-w-[15rem] opacity-100" : "max-w-0 opacity-0"}`}>
             <span className="block w-[15rem] pl-3 pr-2">
-              <span className="flex items-center gap-1.5 text-[11.5px] font-semibold text-accent">
+              <span className="flex items-center gap-1.5 text-12 font-semibold text-accent">
                 <span className="relative flex size-1.5">
                   <span className="vb-ping absolute inset-0 rounded-full bg-accent" />
                   <span className="relative size-1.5 rounded-full bg-accent" />
                 </span>
                 {kind}视频播报
               </span>
-              <span className="mt-1 line-clamp-2 text-[13.5px] font-semibold leading-snug text-ink">{v.headline ?? v.title}</span>
-              <span className="mt-1 block text-[11.5px] text-ink-3">{v.period} · {entries(v)} 条要闻</span>
+              <span className="mt-1 line-clamp-2 text-14 font-semibold leading-snug text-ink">{v.headline ?? v.title}</span>
+              <span className="mt-1 block text-12 text-ink-3">{v.period} · {entries(v)} 条要闻</span>
             </span>
           </span>
         </Link>

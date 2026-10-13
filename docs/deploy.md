@@ -79,6 +79,15 @@ docker compose run --rm setup && docker compose up -d
 
 下面按时间从新到旧列出每次更新要注意的事。
 
+#### 视频由 Caddy 直接发出、生成时让出 CPU（2026 年 10 月 12 日）
+
+没有数据库迁移，也没有新的环境变量。
+
+- 用 HTTPS 配置（`--profile https`）的站点：Caddy 现在只读挂载数据卷，视频和封面直接由它发出，不再经过网站和 api 进程。更新时照常 `docker compose --profile https up -d --build`，Caddy 会带着新的挂载和 `deploy/Caddyfile` 重新创建；自己改过 `deploy/Caddyfile` 的，把新的 `@video` 一段合进去。不用 HTTPS 配置的部署不受影响，仍由 api 发出。
+- 生成视频时，语音合成和编码最多用一半的 CPU 核（不超过 2 个），并以较低优先级运行，采集、打分和写作优先。4 核机器上每期生成时间从 1.5–3 分钟变成约 2–5 分钟。
+- 每期视频多一张封面缩略图（WebP，约 10–20 KB），首页、报告页的小卡片改用它。已有的视频不用重新生成：更新后 worker 下一次运行（10 分钟内）就给它们补上，补上之前先用原封面。
+- 每期播报有了自己的地址 `/videos/daily/<日期>`、`/videos/weekly/<周>`，分享出去的预览是这一期的封面；以前分享的 `/videos?v=…` 链接照样能打开。
+
 #### 视频播报的动效与目录（2026 年 10 月 9 日）
 
 - 迁移 `0059_report_videos_chapters` 给 `report_videos` 加上目录（`chapters`）一列，不改已有数据。

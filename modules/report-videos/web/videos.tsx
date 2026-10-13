@@ -7,32 +7,57 @@
 // The next broadcast is announced over the last seconds of one; the last ends on a card.
 // Motion follows the reader's reduced-motion setting.
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
-import { Link, useLoaderData, useSearchParams } from "react-router";
+import { data, Link, useLoaderData, useNavigate, useParams, useSearchParams } from "react-router";
 import { EDITION_WHEN, SITE, withSubject } from "@aihot/site";
 import { apiGet, cachedPage } from "@aihot/web/lib/api.server";
 import { pageReuse } from "@aihot/web/lib/page-reuse";
-import { pageMeta } from "@aihot/web/lib/seo";
+import { pageMeta, siteUrl } from "@aihot/web/lib/seo";
 import { copyText } from "@aihot/web/lib/clipboard";
 import { IconArrowLeft, IconChevronDown, IconDoc, IconDownload, IconList, IconShare } from "@aihot/web/components/icons";
 import type { Screen } from "@aihot/web/components/shell/screens";
 import type { Chapter, VideoEntry, VideoKind, VideosResponse } from "../types.ts";
+import { clock, entries, playerUrl } from "./shared.ts";
 
 export const handle: Screen = { tab: "videos", name: "视频播报", bare: true };
 export { pageHeaders as headers } from "@aihot/web/lib/api.server";
 export const { clientLoader, shouldRevalidate } = pageReuse<typeof loader>();
 
-export async function loader({ request }: { request: Request }) {
-  return cachedPage(60, await apiGet<VideosResponse>("/api/videos", { signal: request.signal }));
+/** The broadcast a page opens on: its own address (/videos/daily/2026-10-08), or ?kind=…&v=… on /videos as shared before. */
+type Opened = { kind: VideoKind; key: string } | null;
+
+export async function loader({ request, params }: { request: Request; params: { kind?: string; key?: string } }) {
+  const kind = params.kind === "daily" || params.kind === "weekly" ? params.kind : null;
+  if (params.kind && !kind) throw data({ message: "not_found" }, { status: 404 });
+  const opened: Opened = kind && params.key ? { kind, key: params.key } : null;
+  return cachedPage(60, { ...(await apiGet<VideosResponse>("/api/videos", { signal: request.signal })), opened });
 }
 
 const TITLE = `${withSubject("日报")}视频播报`;
 
-export function meta() {
-  return pageMeta({
-    title: TITLE,
-    description: `${SITE.name} 的日报与周报视频播报：主播口播每条要闻，配新闻自带的视频和图片，几分钟听完当天和本周，每条都可回到图文版看原文链接。`,
-    path: "/videos",
+export function meta({ loaderData }: { loaderData?: VideosResponse & { opened: Opened } }) {
+  const opened = loaderData?.opened;
+  const v = opened && loaderData[opened.kind].find((e) => e.key === opened.key);
+  if (!v) {
+    return pageMeta({
+      title: TITLE,
+      description: `${SITE.name} 的日报与周报视频播报：主播口播每条要闻，配新闻自带的视频和图片，几分钟听完当天和本周，每条都可回到图文版看原文链接。`,
+      path: "/videos",
+    });
+  }
+  // A shared broadcast previews as itself: its headline, and its cover (portrait) as the picture.
+  const label = `${withSubject(v.kind === "daily" ? "日报" : "周报")}视频播报`;
+  const tags = pageMeta({
+    title: `${v.headline ?? v.title} · ${label}`,
+    description: `${label} · ${v.period} · 第 ${v.issueNumber} 期：${entries(v)} 条要闻，${clock(v.durationSeconds)}。`,
+    path: playerUrl(v),
+    image: v.poster,
   });
+  const size: Record<string, string> = { "og:image:width": "1080", "og:image:height": "1920" };
+  return [
+    ...tags.map((t) => ("property" in t && typeof t.property === "string" && size[t.property] ? { ...t, content: size[t.property] } : t)),
+    { property: "og:video", content: `${siteUrl()}${v.video}` },
+    { property: "og:video:type", content: "video/mp4" },
+  ];
 }
 
 const KINDS: Array<{ kind: VideoKind; label: string; when: string }> = [
@@ -48,7 +73,6 @@ const HINT_KEY = "videos.swiped";
 /** Seconds before the end the next broadcast is announced. */
 const UP_NEXT = 5;
 
-const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 const chapterAt = (chapters: Chapter[], t: number) => chapters.findLastIndex((c) => c.at <= t + 0.05);
 const reducedMotion = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -112,9 +136,9 @@ function Action({ label, children, badge, ...rest }: { label: string; children: 
     <>
       <span className="relative flex size-12 items-center justify-center rounded-full bg-white/15 backdrop-blur-md transition-[transform,background-color] duration-150 group-hover:bg-white/25 group-active:scale-90">
         {children}
-        {badge ? <span className="num absolute -right-1 -top-1 min-w-5 rounded-full bg-white px-1 text-center text-[11px] font-semibold leading-5 text-black">{badge}</span> : null}
+        {badge ? <span className="num absolute -right-1 -top-1 min-w-5 rounded-full bg-white px-1 text-center text-11 font-semibold leading-5 text-black">{badge}</span> : null}
       </span>
-      <span className="text-[11.5px] font-medium [text-shadow:0_1px_2px_rgba(0,0,0,0.6)]">{label}</span>
+      <span className="text-12 font-medium [text-shadow:0_1px_2px_rgba(0,0,0,0.6)]">{label}</span>
     </>
   );
   const cls = "group flex flex-col items-center gap-1 outline-none focus-visible:[&>span:first-child]:ring-2 focus-visible:[&>span:first-child]:ring-white";
@@ -293,7 +317,7 @@ function Slide({ v, active, near, next, muted, onNext, onShare, feed }: SlidePro
   return (
     <section ref={root} data-slide={v.key} aria-roledescription="视频" aria-label={headline} className="relative h-dvh w-full snap-start snap-always overflow-hidden bg-black">
       {/* Beside a narrow video (a wide screen), its own cover, blurred, fills the rest. */}
-      <div aria-hidden="true" className="absolute inset-0 scale-110 bg-cover bg-center opacity-50 blur-3xl" style={{ backgroundImage: `url(${v.poster})` }} />
+      <div aria-hidden="true" className="absolute inset-0 scale-110 bg-cover bg-center opacity-50 blur-3xl" style={{ backgroundImage: `url(${v.thumb})` }} />
       <video
         ref={ref}
         playsInline
@@ -337,12 +361,12 @@ function Slide({ v, active, near, next, muted, onNext, onShare, feed }: SlidePro
       )}
       {failed && (
         <div className="absolute inset-x-8 top-1/2 -translate-y-1/2 text-center">
-          <p className="text-[15px] font-semibold">视频暂时无法播放</p>
-          <Link to={v.page} className="mt-3 inline-block rounded-full bg-white/15 px-4 py-2 text-[13px] backdrop-blur-md">先看图文版</Link>
+          <p className="text-15 font-semibold">视频暂时无法播放</p>
+          <Link to={v.page} className="mt-3 inline-block rounded-full bg-white/15 px-4 py-2 text-13 backdrop-blur-md">先看图文版</Link>
         </div>
       )}
       {fast && (
-        <div role="status" className="vp-in pointer-events-none absolute left-1/2 top-[3.75rem] -translate-x-1/2 rounded-full bg-black/45 px-3.5 py-1.5 text-[13px] font-medium backdrop-blur-md">
+        <div role="status" className="vp-in pointer-events-none absolute left-1/2 top-[3.75rem] -translate-x-1/2 rounded-full bg-black/45 px-3.5 py-1.5 text-13 font-medium backdrop-blur-md">
           2× 快进中 <span className="opacity-80">▸▸</span>
         </div>
       )}
@@ -354,14 +378,14 @@ function Slide({ v, active, near, next, muted, onNext, onShare, feed }: SlidePro
         <button
           type="button"
           onClick={onNext}
-          className="vp-slide absolute right-3 top-[4.25rem] flex w-[15.5rem] items-center gap-2.5 rounded-xl bg-black/55 p-2 pr-3 text-left ring-1 ring-white/10 backdrop-blur-md transition-colors hover:bg-black/70 sm:right-[max(0.75rem,calc(50%-100dvh*9/32+0.75rem))]"
+          className="vp-slide absolute right-3 top-[4.25rem] flex w-[15.5rem] items-center gap-2.5 rounded-tile bg-black/55 p-2 pr-3 text-left ring-1 ring-white/10 backdrop-blur-md transition-colors hover:bg-black/70 sm:right-[max(0.75rem,calc(50%-100dvh*9/32+0.75rem))]"
         >
-          <span className="relative h-16 w-9 shrink-0 overflow-hidden rounded-md bg-black">
-            <img src={next.poster} alt="" className="size-full object-cover" />
+          <span className="relative h-16 w-9 shrink-0 overflow-hidden rounded-mark bg-black">
+            <img src={next.thumb} alt="" className="size-full object-cover" />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="num block text-[11px] text-white/65">{left} 秒后播放下一期</span>
-            <span className="mt-0.5 line-clamp-2 text-[13px] font-medium leading-snug">{next.headline ?? next.title}</span>
+            <span className="num block text-11 text-white/65">{left} 秒后播放下一期</span>
+            <span className="mt-0.5 line-clamp-2 text-13 font-medium leading-snug">{next.headline ?? next.title}</span>
           </span>
           <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true" className="shrink-0 -rotate-90">
             <circle cx="11" cy="11" r="9" fill="none" stroke="rgba(255,255,255,.2)" strokeWidth="2" />
@@ -373,12 +397,12 @@ function Slide({ v, active, near, next, muted, onNext, onShare, feed }: SlidePro
       {/* The last one has played: start it again, or go to the other feed or back to the site. */}
       {ended && (
         <div className="vp-in absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/70 px-8 text-center backdrop-blur-sm">
-          <div className="text-[19px] font-semibold">{feed.label}播报都看完了</div>
-          <div className="mt-2 text-[13px] text-white/60">共 {feed.count} 期 · 新一期{feed.label}{feed.when} 出刊后自动生成</div>
+          <div className="text-20 font-semibold">{feed.label}播报都看完了</div>
+          <div className="mt-2 text-13 text-white/60">共 {feed.count} 期 · 新一期{feed.label}{feed.when} 出刊后自动生成</div>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <button type="button" onClick={() => jump(0)} className="rounded-full bg-white px-5 py-2.5 text-[14px] font-semibold text-black transition-transform active:scale-95">重播这一期</button>
-            <button type="button" onClick={feed.onOther} className="rounded-full bg-white/15 px-5 py-2.5 text-[14px] transition-[transform,background-color] hover:bg-white/25 active:scale-95">看{feed.other}播报</button>
-            <Link to={v.page} className="rounded-full bg-white/15 px-5 py-2.5 text-[14px] transition-[transform,background-color] hover:bg-white/25 active:scale-95">看图文版</Link>
+            <button type="button" onClick={() => jump(0)} className="rounded-full bg-white px-5 py-2.5 text-14 font-semibold text-black transition-transform active:scale-95">重播这一期</button>
+            <button type="button" onClick={feed.onOther} className="rounded-full bg-white/15 px-5 py-2.5 text-14 transition-[transform,background-color] hover:bg-white/25 active:scale-95">看{feed.other}播报</button>
+            <Link to={v.page} className="rounded-full bg-white/15 px-5 py-2.5 text-14 transition-[transform,background-color] hover:bg-white/25 active:scale-95">看图文版</Link>
           </div>
         </div>
       )}
@@ -399,24 +423,24 @@ function Slide({ v, active, near, next, muted, onNext, onShare, feed }: SlidePro
       {/* What it is, bottom left; dims while the bar is dragged. */}
       <div className={`absolute bottom-9 left-4 right-24 transition-opacity duration-200 sm:left-[max(1rem,calc(50%-100dvh*9/32+1rem))] sm:right-[max(6rem,calc(50%-100dvh*9/32+5rem))] ${scrub !== null ? "opacity-0" : ""}`}>
         {current && (
-          <button type="button" onClick={() => setSheet(true)} className="vp-in mb-2.5 flex max-w-full items-center gap-2 rounded-md bg-white/15 py-1 pl-2 pr-2.5 text-left text-[12.5px] backdrop-blur-md transition-colors hover:bg-white/25" key={chapter}>
+          <button type="button" onClick={() => setSheet(true)} className="vp-in mb-2.5 flex max-w-full items-center gap-2 rounded-mark bg-white/15 py-1 pl-2 pr-2.5 text-left text-13 backdrop-blur-md transition-colors hover:bg-white/25" key={chapter}>
             <Equalizer playing={!paused} />
             <span className="num shrink-0 font-semibold">{current.rank ?? "快讯"}{current.rank ? ` / ${chapters.filter((c) => c.rank).length}` : ""}</span>
             <span className="truncate">{current.title}</span>
           </button>
         )}
-        <div className="text-[16px] font-semibold [text-shadow:0_1px_3px_rgba(0,0,0,0.6)]">@{SITE.name}</div>
+        <div className="text-16 font-semibold [text-shadow:0_1px_3px_rgba(0,0,0,0.6)]">@{SITE.name}</div>
         <button type="button" onClick={() => setExpanded((e) => !e)} aria-expanded={expanded} className="mt-1.5 block text-left">
-          <span className={`text-[14.5px] leading-[1.5] [text-shadow:0_1px_3px_rgba(0,0,0,0.6)] ${expanded ? "" : "line-clamp-2"}`}>{headline}</span>
+          <span className={`text-15 leading-[1.5] [text-shadow:0_1px_3px_rgba(0,0,0,0.6)] ${expanded ? "" : "line-clamp-2"}`}>{headline}</span>
         </button>
-        <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-white/75">
+        <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-12 text-white/75">
           <span>{v.period}</span>
           <span>第 {v.issueNumber} 期</span>
           <span className="num">{clock(v.durationSeconds)}</span>
           {extras && <span>{extras}</span>}
         </div>
         {expanded && (
-          <Link to={v.page} className="vp-in mt-2.5 inline-flex items-center gap-1 rounded-md bg-white/15 px-2.5 py-1 text-[12px] backdrop-blur-md hover:bg-white/25">
+          <Link to={v.page} className="vp-in mt-2.5 inline-flex items-center gap-1 rounded-mark bg-white/15 px-2.5 py-1 text-12 backdrop-blur-md hover:bg-white/25">
             <IconDoc size={13} />看图文版和原文链接
           </Link>
         )}
@@ -425,10 +449,10 @@ function Slide({ v, active, near, next, muted, onNext, onShare, feed }: SlidePro
       {/* Dragging: the time and the entry under the finger. */}
       {scrub !== null && (
         <div className="pointer-events-none absolute inset-x-0 bottom-20 text-center">
-          <div className="num text-[30px] font-semibold tracking-wide [text-shadow:0_2px_8px_rgba(0,0,0,0.6)]">
+          <div className="num text-30 font-semibold tracking-wide [text-shadow:0_2px_8px_rgba(0,0,0,0.6)]">
             {clock(scrub * duration)} <span className="text-white/55">/ {clock(duration)}</span>
           </div>
-          {scrubChapter && <div className="mx-auto mt-1 max-w-[80%] truncate text-[13px] text-white/80">{scrubChapter.rank ? `${scrubChapter.rank}. ` : ""}{scrubChapter.title}</div>}
+          {scrubChapter && <div className="mx-auto mt-1 max-w-[80%] truncate text-13 text-white/80">{scrubChapter.rank ? `${scrubChapter.rank}. ` : ""}{scrubChapter.title}</div>}
         </div>
       )}
 
@@ -466,15 +490,15 @@ function Slide({ v, active, near, next, muted, onNext, onShare, feed }: SlidePro
         aria-modal="true"
         aria-label="本期目录"
         aria-hidden={!sheet}
-        className={`absolute inset-x-0 bottom-0 max-h-[62dvh] overflow-hidden rounded-t-2xl bg-[#161a1c]/95 backdrop-blur-xl transition-transform duration-300 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none sm:mx-auto sm:max-w-[calc(100dvh*9/16)] ${sheet ? "translate-y-0" : "pointer-events-none translate-y-full"}`}
+        className={`absolute inset-x-0 bottom-0 max-h-[62dvh] overflow-hidden rounded-t-sheet bg-raised/95 backdrop-blur-xl transition-transform duration-300 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none sm:mx-auto sm:max-w-[calc(100dvh*9/16)] ${sheet ? "translate-y-0" : "pointer-events-none translate-y-full"}`}
       >
         <div className="flex items-center justify-between px-5 pb-2 pt-4">
           <div>
-            <div className="text-[16px] font-semibold">本期目录</div>
-            <div className="mt-0.5 text-[12px] text-white/55">{v.period} · {chapters.filter((c) => c.rank).length} 条要闻</div>
+            <div className="text-16 font-semibold">本期目录</div>
+            <div className="mt-0.5 text-12 text-white/55">{v.period} · {chapters.filter((c) => c.rank).length} 条要闻</div>
           </div>
           <div className="flex items-center gap-2">
-            <a href={v.video} download tabIndex={sheet ? 0 : -1} className="flex h-9 items-center gap-1 rounded-full bg-white/10 px-3 text-[12.5px] hover:bg-white/20">
+            <a href={v.video} download tabIndex={sheet ? 0 : -1} className="flex h-9 items-center gap-1 rounded-full bg-white/10 px-3 text-13 hover:bg-white/20">
               <IconDownload size={15} />下载
             </a>
             <button type="button" onClick={() => setSheet(false)} aria-label="收起目录" className="flex size-9 items-center justify-center rounded-full bg-white/10 hover:bg-white/20">
@@ -491,13 +515,13 @@ function Slide({ v, active, near, next, muted, onNext, onShare, feed }: SlidePro
                   type="button"
                   tabIndex={sheet ? 0 : -1}
                   onClick={() => jump(c.at)}
-                  className={`flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition-colors ${on ? "bg-white/10" : "hover:bg-white/5"}`}
+                  className={`flex w-full items-start gap-3 rounded-tile px-3 py-3 text-left transition-colors ${on ? "bg-white/10" : "hover:bg-white/5"}`}
                 >
-                  <span className={`num mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md text-[12px] font-semibold ${on ? "bg-[#2ce2e8] text-black" : "bg-white/10 text-white/70"}`}>
+                  <span className={`num mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-mark text-12 font-semibold ${on ? "bg-accent text-accent-contrast" : "bg-white/10 text-white/70"}`}>
                     {on ? <Equalizer playing={!paused} /> : c.rank ?? "+"}
                   </span>
-                  <span className={`flex-1 text-[14px] leading-[1.5] ${on ? "font-semibold text-white" : "text-white/85"}`}>{c.title}</span>
-                  <span className="num mt-0.5 text-[12px] text-white/45">{clock(c.at)}</span>
+                  <span className={`flex-1 text-14 leading-[1.5] ${on ? "font-semibold text-white" : "text-white/85"}`}>{c.title}</span>
+                  <span className="num mt-0.5 text-12 text-white/45">{clock(c.at)}</span>
                 </button>
               </li>
             );
@@ -511,7 +535,9 @@ function Slide({ v, active, near, next, muted, onNext, onShare, feed }: SlidePro
 export default function VideosPage() {
   const videos = useLoaderData<typeof loader>();
   const [params, setParams] = useSearchParams();
-  const current = KINDS.find((k) => k.kind === params.get("kind")) ?? KINDS[0]!;
+  const route = useParams();
+  const navigate = useNavigate();
+  const current = KINDS.find((k) => k.kind === (route.kind ?? params.get("kind"))) ?? KINDS[0]!;
   const list = videos[current.kind];
   const feed = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
@@ -526,7 +552,9 @@ export default function VideosPage() {
   const other = KINDS.find((k) => k !== current)!;
   const switchTo = (kind: VideoKind) => {
     setActive(0);
-    setParams(kind === KINDS[0]!.kind ? {} : { kind }, { replace: true, preventScrollReset: true });
+    // From one broadcast's own address, back to the feed's.
+    if (route.kind) navigate(kind === KINDS[0]!.kind ? "/videos" : `/videos?kind=${kind}`, { replace: true, preventScrollReset: true });
+    else setParams(kind === KINDS[0]!.kind ? {} : { kind }, { replace: true, preventScrollReset: true });
   };
 
   // The slide most in view is the one that plays.
@@ -535,8 +563,8 @@ export default function VideosPage() {
       for (const e of entries) if (e.isIntersecting) setActive(slides().indexOf(e.target as HTMLElement));
     }, { root: feed.current, threshold: 0.6 });
     for (const s of slides()) seen.observe(s);
-    // A shared address (?v=<key>) opens on its video.
-    const shared = slides().findIndex((s) => s.dataset.slide === params.get("v"));
+    // A shared address opens on its video.
+    const shared = slides().findIndex((s) => s.dataset.slide === (route.key ?? params.get("v")));
     if (shared > 0) slides()[shared]!.scrollIntoView({ block: "start" });
     return () => seen.disconnect();
   }, [current.kind]);
@@ -593,7 +621,7 @@ export default function VideosPage() {
   }, [toast]);
 
   const share = async (v: VideoEntry) => {
-    const url = `${location.origin}/videos?${new URLSearchParams({ ...(v.kind === "weekly" ? { kind: "weekly" } : {}), v: v.key })}`;
+    const url = `${location.origin}${playerUrl(v)}`;
     const text = `${v.headline ?? v.title} — ${SITE.name}${v.kind === "daily" ? "日报" : "周报"}视频播报`;
     if (navigator.share) {
       try {
@@ -620,7 +648,8 @@ export default function VideosPage() {
   };
 
   return (
-    <div className="fixed inset-0 select-none bg-black text-white">
+    // The player is always dark, whatever the site's theme: the dark palette's tokens apply inside it.
+    <div data-theme="dark" className="fixed inset-0 select-none bg-black text-white">
       <style>{STYLES}</style>
       <h1 className="sr-only">{TITLE}</h1>
       <div ref={feed} key={current.kind} className="h-full snap-y snap-mandatory overflow-y-scroll overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -639,8 +668,8 @@ export default function VideosPage() {
         ))}
         {!list.length && (
           <div className="flex h-dvh flex-col items-center justify-center px-8 text-center">
-            <p className="text-[17px] font-semibold">还没有{current.label}视频播报</p>
-            <p className="mt-2 text-[13px] text-white/60">{current.label}{current.when}出刊后，视频会在几分钟内出现在这里。</p>
+            <p className="text-17 font-semibold">还没有{current.label}视频播报</p>
+            <p className="mt-2 text-13 text-white/60">{current.label}{current.when}出刊后，视频会在几分钟内出现在这里。</p>
           </div>
         )}
       </div>
@@ -663,7 +692,7 @@ export default function VideosPage() {
                   if (on) return go(0);
                   switchTo(k.kind);
                 }}
-                className={`relative pb-1.5 text-[16.5px] transition-colors [text-shadow:0_1px_3px_rgba(0,0,0,0.5)] ${on ? "font-semibold text-white" : "text-white/60 hover:text-white/85"}`}
+                className={`relative pb-1.5 text-16 transition-colors [text-shadow:0_1px_3px_rgba(0,0,0,0.5)] ${on ? "font-semibold text-white" : "text-white/60 hover:text-white/85"}`}
               >
                 {k.label}
                 <span className={`absolute inset-x-1.5 bottom-0 h-[2.5px] rounded-full bg-white transition-transform duration-200 ${on ? "scale-x-100" : "scale-x-0"}`} />
@@ -675,7 +704,7 @@ export default function VideosPage() {
           type="button"
           onClick={() => (muted ? unmute() : setMuted(true))}
           aria-label={muted ? "打开声音" : "关闭声音"}
-          className={`pointer-events-auto flex h-10 items-center gap-1.5 rounded-full px-3 text-[12.5px] transition-[transform,background-color] active:scale-95 ${muted ? "vp-glow bg-white/20 backdrop-blur-md" : "hover:bg-white/15"}`}
+          className={`pointer-events-auto flex h-10 items-center gap-1.5 rounded-full px-3 text-13 transition-[transform,background-color] active:scale-95 ${muted ? "vp-glow bg-white/20 backdrop-blur-md" : "hover:bg-white/15"}`}
         >
           <IconSound on={!muted} />
           {muted && "开声音"}
@@ -688,12 +717,12 @@ export default function VideosPage() {
             <IconChevronDown size={30} className="rotate-180" />
             <IconChevronDown size={30} className="-mt-4 rotate-180 opacity-60" />
           </span>
-          <span className="mt-1 rounded-full bg-black/45 px-3 py-1 text-[13px] backdrop-blur-md">上滑看下一期</span>
+          <span className="mt-1 rounded-full bg-black/45 px-3 py-1 text-13 backdrop-blur-md">上滑看下一期</span>
         </div>
       )}
 
       {toast && (
-        <div key={toast.n} role="status" className="vp-in absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-lg bg-black/75 px-4 py-2.5 text-[14px]">{toast.text}</div>
+        <div key={toast.n} role="status" className="vp-in absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-control bg-black/75 px-4 py-2.5 text-14">{toast.text}</div>
       )}
     </div>
   );

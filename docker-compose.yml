@@ -96,6 +96,8 @@ services:
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy:/data
+      # The broadcast videos it sends itself (deploy/Caddyfile), read-only.
+      - data:/srv/aihot:ro
     depends_on:
       - web
 

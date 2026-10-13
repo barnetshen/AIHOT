@@ -28,26 +28,27 @@ worker 每 10 分钟跑一次 `videos.render`（后台“运行”页可以看�
 - 更早的期数和已经没有可公开条目的期数，视频删除。
 - 新闻的视频下载失败、超过 80 MB 或读不出来的，那一屏改用配图或文字，不重试；这期内容下次有变化时会再试。
 
-视频存在数据目录的 `videos/` 下（Docker 是 `/data/videos`），一条日报视频约 5–15 MB。
+视频存在数据目录的 `videos/` 下（Docker 是 `/data/videos`），一条日报视频约 5–15 MB。用 HTTPS 配置（`--profile https`）时，视频和封面由 Caddy 直接从数据卷发出（`deploy/Caddyfile`，只读挂载），不经过网站和 api 进程；其他部署方式由 api 发出。
 
 ## 接口
 
 | 地址 | 内容 |
 |---|---|
 | `/videos` | 页面：抖音式全屏竖屏，见下方“播放页” |
-| `/api/videos` | JSON：`{ daily: [...], weekly: [...] }`，每期有日期、期号、头条、时长、配了几段原视频和几张配图、视频和封面地址、图文版地址 |
-| `/api/videos/files/<文件名>` | 视频（`video/mp4`，支持 Range，可以拖动进度）和封面（`image/jpeg`） |
+| `/videos/daily/<日期>`、`/videos/weekly/<周>` | 同一个页面，打开在这一期上；分享出去的就是这个地址，预览图是这一期的封面 |
+| `/api/videos` | JSON：`{ daily: [...], weekly: [...] }`，每期有日期、期号、头条、时长、配了几段原视频和几张配图、视频、封面和封面缩略图地址、图文版地址 |
+| `/api/videos/files/<文件名>` | 视频（`video/mp4`，支持 Range，可以拖动进度）、封面（`image/jpeg`，1080×1920）和封面缩略图（`image/webp`，480 宽，网站自己的页面用它） |
 
 ## 入口
 
 - 手机底部导航的“视频”（在“我的”前面），电脑侧栏“内容”里的“视频播报”。
 - 首页（`web/home.tsx`，只在没有筛选的首页）：手机和较窄的电脑屏上，热点上方是一排可以横滑的播报封面（最新一期日报、最新一期周报，再往前的日报）；宽屏（≥1280px）放在右侧栏顶部：一张大封面，下面列出另外几期。
 - `/daily`、`/weekly` 和每期报告页的右下角有一张小视频卡（`web/bubble.tsx`）：报告页放这一期的播报，`/daily` 放最新一期日报，`/weekly` 放最新一期周报，这一期还没有视频就不显示。手机上是一张竖版封面；电脑上封面旁边先展开 5 秒标题，之后收起，鼠标移上去再展开。页面滚动时它滑到屏幕边缘，停下后回来。点 × 关掉后，直到出了新一期播报才再出现（记在浏览器的 `localStorage`）。
-- 这些都在打开页面后由浏览器读 `/api/videos`（`web/shared.ts`），列表还没到时不占位置。
+- 首页的播报列表在服务器上和页面一起读出（`HomePart.api`），打开时就在；报告页的小视频卡在打开页面后由浏览器读 `/api/videos`（`web/shared.ts`），列表还没到时不占位置。
 
 ## 播放页
 
-- **切换**：上下滑（电脑上 ↑ ↓）换一期；滑到的那期自动播放，播完接着下一期。顶部切换日报、周报（`?kind=weekly`）；分享出去的地址（`?v=<期号>`）直接打开那一期。第一次进来提示“上滑看下一期”。
+- **切换**：上下滑（电脑上 ↑ ↓）换一期；滑到的那期自动播放，播完接着下一期。顶部切换日报、周报（`?kind=weekly`）；分享出去的地址（`/videos/daily/<日期>`，以前分享的 `?v=<期号>` 也照样能打开）直接打开那一期。第一次进来提示“上滑看下一期”。
 - **画面上的手势**：点一下暂停或继续（中间弹出图标）；按住 2 倍速播放，松手恢复；缓冲时转圈；播放失败时给出图文版入口。
 - **进度条**：可以拖动，拖动时显示大号时间和手指下面那条新闻的标题，松手跳过去；每条新闻开头在进度条上有一道分隔。
 - **目录**：一期里的每条新闻都是一个目录点（`report_videos.chapters`，生成时记下每屏开始的时间）。说明文字上方显示正在播第几条，点它或右侧“目录”拉起目录面板，点任意一条跳过去；电脑上 ← → 跳上一条/下一条，C 开关目录。
@@ -61,7 +62,7 @@ worker 每 10 分钟跑一次 `videos.render`（后台“运行”页可以看�
 - worker 所在的机器要有 `ffmpeg`、`ffprobe`（带 libx264）。Docker 镜像已经装好；不用 Docker 的，自己装一个（`apt install ffmpeg`、`brew install ffmpeg`）。
 - 语音模型约 170 MB，不在仓库里。Docker 镜像构建时会自动下载（构建机要能访问 GitHub）；不用 Docker 的，在 `npm ci` 之后运行一次 `node modules/report-videos/scripts/fetch-voice.ts`，它放在 `modules/report-videos/voice/`。下载不了的，可以在别处下载 `vits-melo-tts-zh_en.tar.bz2`（sherpa-onnx 的 tts-models 发布页）后解压到同一个位置。
 - 缺 ffmpeg 或语音模型时，`videos.render` 每次都会失败，连续失败 3 次（半小时）会告警。
-- 一期日报在 4 核机器上生成约 1.5–3 分钟（语音合成、逐层画面和编码），合成时占用最多 4 个 CPU 核。
+- 一期日报在 4 核机器上生成约 2–5 分钟（语音合成、逐层画面和编码）。合成和编码最多用一半的 CPU 核（不超过 2 个），而且以较低优先级运行：机器忙的时候先让采集、打分和写作，视频晚一点出来（`backend/cpu.ts`）。
 - 下载新闻的视频和配图走和抓取信源同一个出口（`guardedFetch`：不连内网地址，每次跳转都检查）。
 
 ## 怎么改
@@ -71,4 +72,4 @@ worker 每 10 分钟跑一次 `videos.render`（后台“运行”页可以看�
 - 选哪些条目：`backend/scenes.ts` 的 `DAILY_ENTRIES`、`WEEKLY_*`、`HEADLINES`；每屏读完停多久：`backend/videos.ts` 的 `PAUSE`。
 - 保留多少期、每次生成几期：`backend/videos.ts` 的 `KEEP`、`PER_RUN`。
 - 改了画面、播报词或语音，把 `scenes.ts` 的 `VIDEO_TEMPLATE_VERSION` 改一下，保留的视频会在接下来几次运行里重新生成。
-- 不要这个功能：从 `site/modules/` 三份清单和 `site/package.json` 里去掉它，删掉 `modules/report-videos/`、`Dockerfile` 里下载语音模型的一行和数据目录下的 `videos/`；`report_videos` 表用一个 `DROP TABLE IF EXISTS report_videos` 的迁移删掉。
+- 不要这个功能：从 `site/modules/` 三份清单和 `site/package.json` 里去掉它，删掉 `modules/report-videos/`、`Dockerfile` 里下载语音模型的一行、`deploy/Caddyfile` 里发视频的 `@video` 一段和 `docker-compose.yml` 里给 Caddy 挂的数据卷，以及数据目录下的 `videos/`；`report_videos` 表用一个 `DROP TABLE IF EXISTS report_videos` 的迁移删掉。

@@ -57,6 +57,32 @@
   --color-rank-3: var(--rank-3);
   --color-rank-rest: var(--rank-rest);
 
+  /* Type scale: the only font sizes, named by their pixel size (text-13 is 13px). 11 is the smallest
+     (tags, the tab bar); 12–15 carry meta lines, rows and body copy; 16–20 titles of cards and sections;
+     22–36 page and article headings; 40–64 the about page's display type. Line height is left to the
+     element (leading-*), as before. */
+  --text-*: initial;
+  --text-11: 11px;
+  --text-12: 12px;
+  --text-13: 13px;
+  --text-14: 14px;
+  --text-15: 15px;
+  --text-16: 16px;
+  --text-17: 17px;
+  --text-18: 18px;
+  --text-20: 20px;
+  --text-22: 22px;
+  --text-24: 24px;
+  --text-26: 26px;
+  --text-28: 28px;
+  --text-30: 30px;
+  --text-32: 32px;
+  --text-36: 36px;
+  --text-40: 40px;
+  --text-48: 48px;
+  --text-56: 56px;
+  --text-64: 64px;
+
   /* Radius scale: mark 6 (inline code, kbd, tiny tags and swatches), control 10 (inputs, small
      blocks), tile 12 (list rows, hover areas), card 16, panel 18 (wells, pictures), sheet 22 (dialogs,
      sheets, hero shells); pills are rounded-full. Arbitrary radii are not used. */
@@ -101,8 +127,8 @@
   --field: #eceff2;
   --ink: #0f1a22;
   --ink-2: #26323b;
-  --ink-3: #56636d;
-  --ink-4: #66727c;
+  --ink-3: #4c5862;
+  --ink-4: #5c6871;
   --line: #e2e6ea;
   --line-strong: #d3d9df;
   --line-soft: #eaedf0;
@@ -163,7 +189,7 @@
   --ink: #eef3f4;
   --ink-2: #d6dfe1;
   --ink-3: #a3afb4;
-  --ink-4: #87959b;
+  --ink-4: #8f9ca2;
   --line: rgba(255, 255, 255, 0.075);
   --line-strong: rgba(255, 255, 255, 0.12);
   --line-soft: rgba(255, 255, 255, 0.055);

@@ -16,7 +16,7 @@ async function sendVideoFile(req: FastifyRequest, reply: FastifyReply, name: str
   const file = path.join(VIDEO_DIR, name);
   const size = match ? await stat(file).then((s) => s.size, () => null) : null;
   if (size === null) return reply.code(404).type("text/plain; charset=utf-8").send("Not found");
-  reply.header("Content-Type", match![4] === "mp4" ? "video/mp4" : "image/jpeg").header("Cache-Control", FILE_CACHE)
+  reply.header("Content-Type", { mp4: "video/mp4", jpg: "image/jpeg", webp: "image/webp" }[match![4] as "mp4" | "jpg" | "webp"]).header("Cache-Control", FILE_CACHE)
     .header("Accept-Ranges", "bytes").header("ETag", `"${name}"`);
   if (req.headers["if-none-match"] === `"${name}"`) return reply.code(304).send();
   // One range ("bytes=a-b", "bytes=a-", "bytes=-n"); anything else gets the whole file.

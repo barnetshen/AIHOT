@@ -49,7 +49,7 @@ export default function ModelsAdmin({ loaderData: m }: Route.ComponentProps) {
               title={
                 <span className="inline-flex flex-wrap items-center gap-2">
                   {c.label}
-                  <span className="font-mono text-[12px] font-normal text-ink-3">{c.current.model}</span>
+                  <span className="font-mono text-12 font-normal text-ink-3">{c.current.model}</span>
                   <Badge tone={c.current.source === "admin" ? "accent" : "muted"}>{SOURCE_LABEL[c.current.source]}</Badge>
                 </span>
               }
@@ -72,9 +72,9 @@ export default function ModelsAdmin({ loaderData: m }: Route.ComponentProps) {
                   rows={c.usage}
                   rowKey={(u) => `${u.purpose}|${u.model}|${u.promptVersion}`}
                   columns={[
-                    { key: "m", label: "模型", render: (u) => <span className="whitespace-nowrap font-mono text-[12px]">{u.model}</span> },
-                    { key: "v", label: "提示版本", render: (u) => <span className="whitespace-nowrap font-mono text-[11.5px] text-ink-3">{u.promptVersion ?? "—"}</span> },
-                    { key: "p", label: "用途", render: (u) => <span className="whitespace-nowrap font-mono text-[11.5px] text-ink-3">{u.purpose}</span> },
+                    { key: "m", label: "模型", render: (u) => <span className="whitespace-nowrap font-mono text-12">{u.model}</span> },
+                    { key: "v", label: "提示版本", render: (u) => <span className="whitespace-nowrap font-mono text-12 text-ink-3">{u.promptVersion ?? "—"}</span> },
+                    { key: "p", label: "用途", render: (u) => <span className="whitespace-nowrap font-mono text-12 text-ink-3">{u.purpose}</span> },
                     { key: "c", label: "调用", align: "right", render: (u) => num(u.calls) },
                     {
                       key: "ok",
@@ -120,7 +120,7 @@ export default function ModelsAdmin({ loaderData: m }: Route.ComponentProps) {
               columns={[
                 { key: "at", label: "时间", render: (h) => <span className="num whitespace-nowrap">{bj(h.at)}</span> },
                 { key: "c", label: "能力", render: (h) => labelOf(h.subject) },
-                { key: "m", label: "变化", render: (h) => <span className="font-mono text-[12px]">{h.before?.model ?? "—"} → {h.after?.model ?? "—"}</span> },
+                { key: "m", label: "变化", render: (h) => <span className="font-mono text-12">{h.before?.model ?? "—"} → {h.after?.model ?? "—"}</span> },
                 { key: "r", label: "原因", render: (h) => <span className="text-ink-3">{h.reason}</span> },
                 { key: "a", label: "操作人", render: (h) => h.actor },
               ]}
@@ -137,7 +137,7 @@ export default function ModelsAdmin({ loaderData: m }: Route.ComponentProps) {
               rowKey={(b) => b.id}
               columns={[
                 { key: "l", label: "运行", render: (b) => <Link to={`/admin/selectbench/${b.id}`} className="text-ink hover:text-accent">{b.label}</Link> },
-                { key: "m", label: "模型", render: (b) => <span className="font-mono text-[11.5px] text-ink-3">{b.models.join("、")}</span> },
+                { key: "m", label: "模型", render: (b) => <span className="font-mono text-12 text-ink-3">{b.models.join("、")}</span> },
                 { key: "n", label: "样本", align: "right", render: (b) => num(b.sample_size) },
                 { key: "at", label: "时间", render: (b) => <span className="num whitespace-nowrap">{bj(b.created_at)}</span> },
               ]}

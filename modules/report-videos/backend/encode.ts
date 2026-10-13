@@ -7,6 +7,7 @@
 // has all arrived.
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { THREADS, yieldCpu } from "./cpu.ts";
 import { ACCENT, CLIP_BOX, type Segment } from "./frames.ts";
 
 const run = promisify(execFile);
@@ -112,11 +113,13 @@ export async function encode(shots: Shot[], out: string): Promise<void> {
   steps.push(`${last}null[out]`);
   if (voices.length) steps.push(`${voices.join("")}amix=inputs=${voices.length}:normalize=0:duration=longest,apad[speech]`);
   const length = totalSeconds(shots.map((s) => s.seconds)).toFixed(3);
-  await run("ffmpeg", [
+  const encoding = run("ffmpeg", [
     "-y", "-nostdin", "-loglevel", "error", ...inputs,
-    "-filter_complex", steps.join(";"), "-map", "[out]",
+    "-filter_complex_threads", String(THREADS), "-filter_complex", steps.join(";"), "-map", "[out]",
     ...(voices.length ? ["-map", "[speech]", "-c:a", "aac", "-b:a", "96k"] : ["-an"]),
-    "-c:v", "libx264", "-preset", "veryfast", "-crf", "22", "-r", String(FPS),
+    "-c:v", "libx264", "-preset", "veryfast", "-crf", "22", "-threads", String(THREADS), "-r", String(FPS),
     "-t", length, "-movflags", "+faststart", out,
   ], { maxBuffer: 4 * 1024 * 1024 });
+  yieldCpu(encoding.child);
+  await encoding;
 }

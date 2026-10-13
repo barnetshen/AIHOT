@@ -20,7 +20,9 @@ export interface VideoEntry {
   /** Where each entry's screen begins, in order. */
   chapters: Chapter[];
   video: string;
+  /** The cover at full size (1080×1920 JPEG), and small (WebP) for the site's own pages. */
   poster: string;
+  thumb: string;
   /** The issue's page. */
   page: string;
   renderedAt: string;

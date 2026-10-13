@@ -61,7 +61,7 @@ export function TabBar({ changelogVersion }: { changelogVersion: string | null }
                   void revalidator.revalidate();
                 }
               }}
-              className={`group relative flex flex-col items-center justify-center gap-[3px] text-[10.5px] transition-colors ${on ? "font-semibold text-accent" : "text-ink-4 active:text-ink"}`}
+              className={`group relative flex flex-col items-center justify-center gap-[3px] text-11 transition-colors ${on ? "font-semibold text-accent" : "text-ink-4 active:text-ink"}`}
             >
               <span className={`flex h-7 w-12 items-center justify-center rounded-full transition-[background-color,transform] duration-300 ease-[var(--ease-out-quart)] group-active:scale-90 ${on ? "bg-accent-soft" : ""}`}>
                 <Icon size={22} />
