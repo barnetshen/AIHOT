@@ -7,7 +7,7 @@ import { filterParams, itemListLd, listPath, pageMeta, readFilters, siteLd } fro
 import type { Screen } from "../components/shell/screens";
 import { Timeline } from "../features/feed/Timeline";
 import { HotTopics } from "../features/feed/HotTopics";
-import { ActiveFilters, CategoryTabs, FeedBar, SearchField } from "../features/feed/Filters";
+import { ActiveFilters, CategoryTabs, FeedBar, SearchField, todayLabel } from "../features/feed/Filters";
 import { loadParts } from "../site-modules";
 
 export const handle: Screen = { tab: "featured", name: "精选" };
@@ -44,26 +44,34 @@ export default function Home() {
   return (
     <div className="pb-6 xl:grid xl:grid-cols-[minmax(0,1fr)_340px] xl:gap-10">
       <div className="min-w-0">
-        {/* Phones: the bar (精选 | 全部, filter, search), the filter in use, the modules' parts, today's hot topics, the feed. */}
+        {/* Phones: the head (date, large title, 精选 | 全部, filter, search) and the filter in use; then the
+            feed, with the modules' parts and the hot topics after its first day. */}
         <FeedBar base="/" category={filters.category} channel={filters.channel} />
         <ActiveFilters base="/" category={filters.category} channel={filters.channel} tag={filters.tag} />
         <div className="hidden lg:block">
-          <h1 className="text-28 font-bold leading-[1.25] tracking-[-0.02em] text-ink">{title}</h1>
-          <div className="mb-6 mt-4 flex items-center justify-between gap-4">
+          <p className="text-14 font-semibold text-ink-4" suppressHydrationWarning>{todayLabel()}</p>
+          <h1 className="text-36 font-bold leading-[1.2] tracking-[-0.025em] text-ink">{title}</h1>
+          <div className="mb-2 mt-5 flex items-center justify-between gap-4">
             <CategoryTabs base="/" category={filters.category} channel={filters.channel} layoutId="home-cat-desk" className="min-w-0" />
             <SearchField keep={{ category: filters.category }} />
           </div>
         </div>
 
-        {plain && PARTS.map(({ name, part: { Top } }, i) => Top && <div key={name} className="xl:hidden"><Top data={parts[i]} /></div>)}
-        {data.hot && <div className="xl:hidden"><HotTopics entries={data.hot} /></div>}
-
-        <Timeline initial={data} filters={data.filters} />
+        <Timeline
+          initial={data}
+          filters={data.filters}
+          interlude={
+            <div className="xl:hidden">
+              {plain && PARTS.map(({ name, part: { Top } }, i) => Top && <Top key={name} data={parts[i]} />)}
+              {data.hot && <HotTopics entries={data.hot} />}
+            </div>
+          }
+        />
       </div>
 
       {/* Wide desktops: a side column that stays in view beside the feed. */}
       <aside aria-label="侧栏" className="hidden xl:block">
-        <div className="scrollbar-none sticky top-6 max-h-[calc(100dvh-3rem)] space-y-7 overflow-y-auto pb-2">
+        <div className="scrollbar-none sticky top-6 max-h-[calc(100dvh-3rem)] space-y-4 overflow-y-auto pb-2 pt-12">
           {plain && PARTS.map(({ name, part: { Rail } }, i) => Rail && <Rail key={name} data={parts[i]} />)}
           {data.hot && <HotTopics entries={data.hot} compact />}
         </div>

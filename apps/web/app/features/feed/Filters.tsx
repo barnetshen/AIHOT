@@ -10,6 +10,8 @@ import { Sheet } from "../../components/ui/Sheet";
 import { Wordmark } from "@aihot/site/brand/Logo.tsx";
 import { BarButton, PhoneBar } from "../../components/shell/PhoneBar";
 import { openSearch } from "../search/SearchOverlay";
+import { beijingDate, beijingWeekday } from "@aihot/contracts/time";
+import { monthDay } from "../../lib/format";
 
 /** Same page with some query parameters changed (paging state dropped). */
 function hrefWith(base: string, params: URLSearchParams, patch: Record<string, string | null>) {
@@ -48,8 +50,9 @@ export function CategoryTabs({ base, category, channel = "all", layoutId, classN
 }
 
 /**
- * The phone bar of 精选 and 全部: the brand, the 精选 | 全部 switch (a filter in use carries over), and
- * buttons for the filter sheet and search.
+ * The phone head of 精选 and 全部, as an Apple app sets one: a slim bar with the brand and buttons for the
+ * filter sheet and search, then today's date over a large title (the bar takes the title once it has
+ * scrolled under), then the 精选 | 全部 switch across the width (a filter in use carries over).
  */
 export function FeedBar({ base, category, channel }: { base: "/" | "/all"; category: CategoryKey | null; channel: ChannelKey }) {
   const [params] = useSearchParams();
@@ -64,18 +67,7 @@ export function FeedBar({ base, category, channel }: { base: "/" | "/all"; categ
             <Wordmark size={17} />
           </Link>
         }
-        center={
-          <PillTabs
-            size="sm"
-            layoutId="feed-scope"
-            label="看精选或全部"
-            active={base === "/" ? "featured" : "all"}
-            items={[
-              { key: "featured", label: "精选", to: scope("/"), resetScroll: true, prefetch: 'intent' },
-              { key: "all", label: "全部", to: scope("/all"), resetScroll: true, prefetch: 'intent' },
-            ]}
-          />
-        }
+        title={base === "/" ? "精选" : "全部动态"}
         actions={
           <>
             <BarButton label={filtered ? "筛选（已选）" : "筛选"} on={filtered} onClick={() => setSheet(true)}>
@@ -86,9 +78,31 @@ export function FeedBar({ base, category, channel }: { base: "/" | "/all"; categ
           </>
         }
       />
+      <div className="pb-1 pt-1 lg:hidden">
+        <p className="text-13 font-semibold text-ink-4" suppressHydrationWarning>{todayLabel()}</p>
+        <h1 data-page-title="" className="text-32 font-bold leading-[1.2] tracking-[-0.02em] text-ink">{base === "/" ? "精选" : "全部动态"}</h1>
+        <PillTabs
+          fill
+          size="sm"
+          layoutId="feed-scope"
+          label="看精选或全部"
+          className="mt-3"
+          active={base === "/" ? "featured" : "all"}
+          items={[
+            { key: "featured", label: "精选", to: scope("/"), resetScroll: true, prefetch: 'intent' },
+            { key: "all", label: "全部", to: scope("/all"), resetScroll: true, prefetch: 'intent' },
+          ]}
+        />
+      </div>
       <FilterSheet open={sheet} onClose={() => setSheet(false)} base={base} active={filterKey(category, channel)} />
     </>
   );
+}
+
+/** "10月15日 星期三", today in Beijing, over the large titles. */
+export function todayLabel(): string {
+  const day = beijingDate(Date.now());
+  return `${monthDay(day)} ${beijingWeekday(day)}`;
 }
 
 /** Phones: the filter as a sheet of options, the one in use ticked; choosing one applies it. */

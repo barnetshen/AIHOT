@@ -1,4 +1,4 @@
-// A page of reports grouped by Beijing day with the same rail and rows as the home timeline
+// A page of reports grouped by Beijing day, each day a grouped list with the same rows as the home timeline
 // (全部动态, topics, search results).
 import { IntentLink } from "../../components/ui/IntentLink";
 import { useMemo } from "react";
@@ -25,11 +25,11 @@ export function DayList({ items, todayCount = null, headerAside }: { items: Feed
   return (
     <div>
       {days.map(({ day, items: list }, i) => (
-        <section key={day} aria-label={day}>
+        <section key={day} aria-label={day} className="pb-2">
           <DayHeader day={day} today={today} count={day === today ? todayCount : null} aside={i === 0 ? headerAside : undefined} />
-          <ol className="lg:pt-1">
+          <ol className="card mt-1 overflow-hidden">
             {list.map((it) => (
-              <TimelineSlot key={it.id} at={it.timelineAt}>
+              <TimelineSlot key={it.id}>
                 <FeedItem item={it} read={readSet.has(it.id)} onOpen={markRead} showTags at={it.timelineAt} />
               </TimelineSlot>
             ))}

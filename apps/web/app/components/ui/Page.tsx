@@ -87,3 +87,18 @@ export function EmptyState({ title, children, action }: { title: ReactNode; chil
     </div>
   );
 }
+
+/** A section's heading as an Apple list sets one: the name in bold, and a tinted link to more on the right. */
+export function SectionHead({ id, title, to, more }: { id?: string; title: ReactNode; to?: string; more?: string }) {
+  return (
+    <div className="flex items-baseline justify-between pb-2 pt-3 lg:pt-5">
+      <h2 id={id} className="text-20 font-bold tracking-[-0.015em] text-ink">{title}</h2>
+      {to && more && (
+        <Link to={to} className="-my-2 inline-flex h-10 items-center gap-0.5 text-15 text-accent transition-opacity hover:opacity-70">
+          {more}
+          <IconChevronRight size={15} />
+        </Link>
+      )}
+    </div>
+  );
+}

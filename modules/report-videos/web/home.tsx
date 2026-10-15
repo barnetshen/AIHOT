@@ -4,7 +4,7 @@
 // without one, neither shows.
 import { Link } from "react-router";
 import type { HomePart } from "@aihot/web/modules";
-import { IconArrowRight } from "@aihot/web/components/icons";
+import { SectionHead } from "@aihot/web/components/ui/Page";
 import type { VideoEntry, VideosResponse } from "../types.ts";
 import { clock, entries, playerUrl } from "./shared.ts";
 
@@ -29,28 +29,16 @@ function PlayGlyph({ size = 12 }: { size?: number }) {
 }
 
 function Heading({ id }: { id: string }) {
-  return (
-    <div className="flex items-center justify-between">
-      <h2 id={id} className="flex items-center gap-2 text-15 font-bold tracking-[-0.01em] text-ink">
-        <span className="bg-brand flex size-5 items-center justify-center rounded-mark pl-px text-white" aria-hidden="true">
-          <PlayGlyph size={10} />
-        </span>
-        视频播报
-      </h2>
-      <Link to="/videos" className="group -my-2 -mr-1.5 inline-flex h-10 items-center gap-1 px-1.5 text-13 text-ink-3 transition-colors hover:text-accent">
-        全屏看 <IconArrowRight size={13} className="transition-transform duration-200 group-hover:translate-x-0.5" />
-      </Link>
-    </div>
-  );
+  return <SectionHead id={id} title="视频播报" to="/videos" more="全部" />;
 }
 
 export function VideoStrip({ data }: { data: unknown }) {
   const list = ordered(data);
   if (!list.length) return null;
   return (
-    <section aria-labelledby="home-videos" className="mb-4 lg:mb-6">
+    <section aria-labelledby="home-videos" className="pb-2">
       <Heading id="home-videos" />
-      <ul className="scrollbar-none bleed mt-1.5 flex snap-x snap-mandatory scroll-px-[var(--gutter-l)] gap-2.5 overflow-x-auto pb-1 lg:mx-0 lg:scroll-px-0 lg:px-0">
+      <ul className="scrollbar-none bleed flex snap-x snap-mandatory scroll-px-[var(--gutter-l)] gap-2.5 overflow-x-auto pb-1 lg:mx-0 lg:scroll-px-0 lg:px-0">
         {list.map((v, i) => (
           <li key={`${v.kind}-${v.key}`} className="shrink-0 snap-start">
             <Link
@@ -86,7 +74,7 @@ export function VideoRail({ data }: { data: unknown }) {
       <Link
         to={playerUrl(lead)}
         aria-label={`看${kindLabel(lead)}视频播报：${lead.headline ?? lead.title}`}
-        className="group relative mt-1.5 block aspect-[4/5] overflow-hidden rounded-card bg-black shadow-[var(--shadow-soft)]"
+        className="group relative block aspect-[4/5] overflow-hidden rounded-card bg-black shadow-[var(--shadow-soft)]"
       >
         <img src={lead.thumb} alt="" loading="lazy" className="size-full object-cover object-top transition-transform duration-700 ease-[var(--ease-out-quart)] group-hover:scale-[1.04]" />
         <span className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent" />

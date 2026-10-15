@@ -9,7 +9,7 @@ import { FeedItem } from "./FeedItem";
 import { IconChevronDown } from "../../components/icons";
 import { RingMark } from "@aihot/site/brand/Logo.tsx";
 import { EmptyState } from "../../components/ui/Page";
-import { beijingDate, beijingTime, beijingWeekday } from "@aihot/contracts/time";
+import { beijingDate, beijingWeekday } from "@aihot/contracts/time";
 import { monthDay, weekdayShort } from "../../lib/format";
 import { isHydrated } from "../../lib/hydration";
 import { markRead, useReadSet } from "../../lib/local-state";
@@ -31,17 +31,18 @@ function fromResponse(r: TimelineResponse): ListState {
   return { version: 2, cards: r.cards, nextCursor: r.nextCursor, dayCounts: r.dayCounts, collapsed: [], batches: 1 };
 }
 
-/** Sticky day header under the phone bar: a quiet row on desktop, a frosted full-width bar on phones. */
+/**
+ * A day's section header, as an Apple list sets one: the day in bold ("今天" for today), the weekday and the
+ * count in grey. It stays under the phone bar while its day scrolls by; on the timeline it folds the day.
+ */
 export function DayHeader({ day, today, count, collapsed, onToggle, aside }: { day: string; today: string; count: number | null; collapsed?: boolean; onToggle?: () => void; aside?: React.ReactNode }) {
   const date = monthDay(day);
-  const weekday = beijingWeekday(day);
-  const short = weekdayShort(day);
-  const phoneRow = (
+  const isToday = day === today;
+  const row = (
     <>
-      <span className="text-15 font-bold tracking-[-0.01em] text-ink">{day === today ? "今天" : date}</span>
-      {day === today && <span className="text-13 text-ink-4">{date}</span>}
-      <span className="text-13 text-ink-4">{short}</span>
-      <span className="ml-auto flex items-center gap-1 text-13 text-ink-4">
+      <span className="text-20 font-bold tracking-[-0.015em] text-ink">{isToday ? "今天" : date}</span>
+      <span className="text-14 text-ink-4">{isToday ? `${date} ${weekdayShort(day)}` : beijingWeekday(day)}</span>
+      <span className="ml-auto flex items-center gap-1.5 text-13 text-ink-4">
         {aside}
         {count !== null && (
           <span>
@@ -53,72 +54,41 @@ export function DayHeader({ day, today, count, collapsed, onToggle, aside }: { d
     </>
   );
   return (
-    <div className="bleed sticky top-[var(--bar-h)] z-20 bg-daybar/90 backdrop-blur-xl lg:mx-0 lg:bg-bg lg:px-0 lg:backdrop-blur-none">
-      {/* Phones: a full-width day bar; on the timeline the whole bar folds the day. */}
+    <div className="bleed sticky top-[var(--bar-h)] z-20 bg-bg/90 backdrop-blur-xl lg:static lg:mx-0 lg:px-0 lg:backdrop-blur-none">
       {onToggle ? (
-        <button type="button" onClick={onToggle} aria-expanded={!collapsed} aria-label={`${collapsed ? "展开" : "收起"}${date}`} className="flex h-11 w-full items-center gap-2 text-left lg:hidden">
-          {phoneRow}
+        <button type="button" onClick={onToggle} aria-expanded={!collapsed} aria-label={`${collapsed ? "展开" : "收起"}${date}`} className="flex h-12 w-full items-baseline gap-2 pt-3 text-left lg:h-14 lg:pt-5">
+          {row}
         </button>
       ) : (
-        <div className="flex h-9 items-center gap-2 lg:hidden">{phoneRow}</div>
+        <div className="flex h-12 items-baseline gap-2 pt-3 lg:h-14 lg:pt-5">{row}</div>
       )}
-      {/* Desktop: date text shares the page's left edge, regardless of how many digits it has. */}
-      <div className="hidden h-11 items-center gap-3 lg:flex">
-        {onToggle ? (
-          <button type="button" onClick={onToggle} aria-expanded={!collapsed} className="whitespace-nowrap text-left text-20 font-bold leading-6 tracking-[-0.01em] text-ink">
-            {date}
-          </button>
-        ) : (
-          <time dateTime={day} className="whitespace-nowrap text-20 font-bold leading-6 tracking-[-0.01em] text-ink">{date}</time>
-        )}
-        {onToggle ? (
-          <button
-            type="button"
-            onClick={onToggle}
-            aria-expanded={!collapsed}
-            aria-label={collapsed ? `展开${date}` : `收起${date}`}
-            className="grid size-6 place-items-center justify-self-center rounded-full text-ink-4 transition-colors hover:bg-bg-sunk hover:text-ink"
-          >
-            <IconChevronDown size={14} className={`transition-transform duration-200 ${collapsed ? "-rotate-90" : ""}`} />
-          </button>
-        ) : null}
-        <span className="text-13 text-ink-4">
-          {weekday}
-          {count !== null && (
-            <>
-              {" · "}
-              <span className="num">{count}</span> 条
-            </>
-          )}
-        </span>
-        {aside && <span className="ml-auto text-12 text-ink-4">{aside}</span>}
-      </div>
     </div>
   );
 }
 
-/**
- * One dated slot: the time (desktop, in a column of its own) and the item.
- */
-export function TimelineSlot({ at, children, fresh = false, delay = 0, dataKey }: { at: string; children: React.ReactNode; fresh?: boolean; delay?: number; dataKey?: string }) {
+/** One row of a day's grouped list, with a hairline above it inset to the text (none above the first). */
+export function TimelineSlot({ children, fresh = false, delay = 0, dataKey }: { children: React.ReactNode; fresh?: boolean; delay?: number; dataKey?: string }) {
   return (
     <li
       data-card-key={dataKey}
-      className={`group/slot pb-2.5 lg:pb-0 ${fresh ? "animate-fade-up" : ""}`}
+      className={`group/slot relative px-4 py-3.5 transition-colors duration-150 touch:has-[a:active]:bg-bg-sunk lg:px-5 lg:py-4 lg:hover:bg-surface-2 ${fresh ? "animate-fade-up" : ""}`}
       style={fresh ? { animationDelay: `${delay}ms` } : undefined}
     >
-      {/* Phones: a card (the item shows its time), pressing in a little under the finger. */}
-      <div className="grid grid-cols-[minmax(0,1fr)] rounded-card bg-surface px-4 py-3.5 transition-transform duration-150 ease-[var(--ease-out-quart)] touch:has-[a:active]:scale-[0.985] lg:grid-cols-[56px_minmax(0,1fr)] lg:rounded-none lg:bg-transparent lg:p-0 lg:pb-3 lg:group-last/slot:pb-0 lg:touch:has-[a:active]:scale-100">
-        <time dateTime={at} className="num hidden text-ink-4 lg:block lg:pt-[17px] lg:text-13 lg:leading-6">
-          {beijingTime(at)}
-        </time>
-        {children}
-      </div>
+      <span aria-hidden="true" className="absolute right-0 top-0 left-4 h-px bg-line-soft group-first/slot:hidden lg:left-5" />
+      {children}
     </li>
   );
 }
 
-export function Timeline({ initial, filters }: { initial: TimelineResponse; filters: TimelineFilters }) {
+/** The day's lead (its strongest pick) set apart above the list, then the rest in time order. */
+function splitLead(cards: TimelineCard[]): [TimelineCard | null, TimelineCard[]] {
+  if (cards.length < 3) return [null, cards];
+  const lead = cards.reduce((a, c) => ((c.item.score ?? 0) > (a.item.score ?? 0) ? c : a));
+  return [lead, cards.filter((c) => c !== lead)];
+}
+
+/** `interlude` comes after the first day, so the news leads and what browses alongside it follows. */
+export function Timeline({ initial, filters, interlude }: { initial: TimelineResponse; filters: TimelineFilters; interlude?: React.ReactNode }) {
   const location = useLocation();
   const navigation = useNavigation();
   const readSet = useReadSet();
@@ -276,30 +246,46 @@ export function Timeline({ initial, filters }: { initial: TimelineResponse; filt
   return (
     <div className="relative">
       {days.length === 0 && (
-        <div className="lg:card">
+        <div className="card">
           <EmptyState title="这个筛选下还没有精选内容">换个类别看看，或者去全部动态里找找。</EmptyState>
         </div>
       )}
 
-      {days.map(({ day, cards }) => {
+      {days.map(({ day, cards }, dayIndex) => {
         const collapsed = state.collapsed.includes(day);
         const count = state.dayCounts[day] ?? cards.length;
         return (
-          <section key={day} aria-label={day} className="lg:mb-1">
+          <section key={day} aria-label={day} className="pb-2">
             <DayHeader day={day} today={today} count={count} collapsed={collapsed} onToggle={() => toggleDay(day)} />
             <Collapse open={!collapsed}>
-                <ol className="lg:pt-1">
-                  {cards.map((c) => {
-                    const fresh = freshKeys.has(c.key);
-                    const delay = fresh ? Math.min(order++, 10) * 40 : 0;
-                    return (
-                      <TimelineSlot key={c.key} dataKey={c.key} at={c.anchorAt} fresh={fresh} delay={delay}>
-                        <FeedItem item={c.item} group={c.group} filters={filters} read={readSet.has(c.item.id)} onOpen={markRead} at={c.anchorAt} inPicks />
-                      </TimelineSlot>
-                    );
-                  })}
-                </ol>
+              {(() => {
+                const [lead, rest] = splitLead(cards);
+                const item = (c: TimelineCard, hero = false) => (
+                  <FeedItem item={c.item} group={c.group} filters={filters} read={readSet.has(c.item.id)} onOpen={markRead} at={c.anchorAt} inPicks hero={hero} />
+                );
+                return (
+                  <div className="pt-1">
+                    {lead && (
+                      <div data-card-key={lead.key} className="group/slot card relative mb-3 px-5 py-5 transition-shadow duration-200 lg:px-7 lg:py-6 lg:hover:shadow-[var(--shadow-card-hover)]">
+                        {item(lead, true)}
+                      </div>
+                    )}
+                    <ol className="card overflow-hidden">
+                      {rest.map((c) => {
+                        const fresh = freshKeys.has(c.key);
+                        const delay = fresh ? Math.min(order++, 10) * 40 : 0;
+                        return (
+                          <TimelineSlot key={c.key} dataKey={c.key} fresh={fresh} delay={delay}>
+                            {item(c)}
+                          </TimelineSlot>
+                        );
+                      })}
+                    </ol>
+                  </div>
+                );
+              })()}
             </Collapse>
+            {dayIndex === 0 && interlude}
           </section>
         );
       })}
