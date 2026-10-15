@@ -60,7 +60,7 @@ function FeedbackAside() {
         <ol className="space-y-2.5">
           {TIPS.map((t, i) => (
             <li key={t} className="flex gap-2.5 text-13 leading-[1.6] text-ink-3">
-              <span className="mono mt-px text-11 font-bold text-accent">{String(i + 1).padStart(2, "0")}</span>
+              <span className="num mt-px text-13 font-semibold text-accent">{String(i + 1).padStart(2, "0")}</span>
               {t}
             </li>
           ))}

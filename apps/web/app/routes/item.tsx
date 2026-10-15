@@ -75,18 +75,15 @@ export function meta({ loaderData }: Route.MetaArgs) {
 }
 
 /** A 2px accent line across the top that follows long bodies. */
-/** The summary set apart as a card, a stroke of the brand colour down its side. */
-const SUMMARY_CARD = "relative overflow-hidden rounded-panel bg-surface px-5 py-4 shadow-[var(--shadow-card)] ring-1 ring-line-soft dark:bg-raised";
+/** The summary set apart as a card. */
+const SUMMARY_CARD = "card px-5 py-4";
 
 function SummaryLabel({ children }: { children: ReactNode }) {
   return (
-    <>
-      <span aria-hidden="true" className="bg-brand absolute inset-y-0 left-0 w-[3px]" />
-      <div className="mb-1.5 flex items-center gap-1.5 text-12 font-semibold text-accent">
-        <IconSparkles size={13} />
-        {children}
-      </div>
-    </>
+    <div className="mb-1.5 flex items-center gap-1.5 text-13 font-semibold text-accent">
+      <IconSparkles size={14} />
+      {children}
+    </div>
   );
 }
 
@@ -196,7 +193,7 @@ function ItemPreview({ preview }: { preview: FeedItemSummary }) {
           {isX && <span>· @{preview.x!.handle} · X</span>}
           <span>·</span>
           {!preview.publishedAt && <span>收录于</span>}
-          <time dateTime={shownAt} className="mono">{fullDateTime(shownAt)}</time>
+          <time dateTime={shownAt} className="num">{fullDateTime(shownAt)}</time>
           {preview.selected && <span className="ml-1">{preview.sameEvent ? <SameEventBadge /> : <SelectedBadge />}</span>}
           {shownScore(preview.score) !== null && (
             <span className="ml-1">
@@ -375,7 +372,7 @@ function ItemView({ item }: { item: SiteItemDetail }) {
         {isX ? `@${item.x!.handle} · X` : item.author ?? hostOf(item.links.original)}
       </div>
       <div className="mt-3 text-12 text-ink-4">{timeLabel}</div>
-      <time dateTime={shownAt} className="mono mt-0.5 block text-13 text-ink-2">
+      <time dateTime={shownAt} className="num mt-0.5 block text-13 text-ink-2">
         {fullDateTime(shownAt)}
       </time>
       <div className="mt-0.5 text-12 text-ink-4" suppressHydrationWarning>
@@ -474,7 +471,7 @@ function ItemView({ item }: { item: SiteItemDetail }) {
             {item.author && !isX && <span>· {item.author}</span>}
             <span>·</span>
             {!item.publishedAt && <span>收录于</span>}
-            <time dateTime={shownAt} className="mono">{fullDateTime(shownAt)}</time>
+            <time dateTime={shownAt} className="num">{fullDateTime(shownAt)}</time>
             <span suppressHydrationWarning>· {relativeTime(shownAt)}</span>
             {item.selected && (
               <span className="ml-1 lg:hidden">

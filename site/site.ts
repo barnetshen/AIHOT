@@ -181,10 +181,6 @@ export const AGENT = {
 
 /** 日报、周报、月报版面上的说法。 */
 export const REPORTS = {
-  /** 报头下面的出版者一行。 */
-  imprint: SITE.name.toUpperCase(),
-  /** 报头旁边的一个词。 */
-  motto: SITE.subject as string,
   /** 每种报告页面的描述（搜索结果、分享卡片），不带句号；llms.txt 介绍周报、月报时也用它。 */
   descriptions: {
     daily: `${SITE.name} ${subjectAfter(`${EDITION_WHEN.daily}（北京时间）发布的`, "行业精编日报")}`,
@@ -192,11 +188,11 @@ export const REPORTS = {
     monthly: subjectAfter("每月", "行业盘点"),
   },
   /**
-   * 一期里的一条怎么称呼（“4 件大事”）：没有头条时的标题（“这一天的 4 件 AI 大事”）、报头和往期目录的条数、
+   * 一期里的一条怎么称呼（“4 件大事”）：没有头条时的标题（“这一天的 4 件 AI 大事”）、页首和往期目录的条数、
    * 周报月报没有总述时的那句话，以及订阅说明里的“按栏目分好的大事”都用它。
    */
   entry: { measure: "件", noun: "大事" },
-  /** 报头上其余几个数字后面的说法；精选数和日报期数在关于页、主题页也这样写。 */
+  /** 页首那行数字后面的说法；精选数和日报期数在关于页、主题页也这样写。 */
   metricUnits: { sourcesCount: "个来源", firstPartyEvents: "件一手发布", selectedCount: "条精选", reportsCovered: "期日报" },
   /** 报告分享图上“共几条”的说法。 */
   shareUnit: "件大事",

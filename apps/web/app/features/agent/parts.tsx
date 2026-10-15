@@ -4,11 +4,11 @@ import type { ReactNode } from "react";
 import { CopyButton } from "./CodeBlock";
 import { IconChevronDown } from "../../components/icons";
 
-/** A panel's head: the track and version in small mono, the promise, and one line of context. */
+/** A panel's head: the track and version in a small line, the promise, and one line of context. */
 export function PanelHead({ label, title, children }: { label: string; title: string; children?: ReactNode }) {
   return (
     <header>
-      <div className="mono text-12 uppercase tracking-[0.14em] text-ink-4">{label}</div>
+      <div className="text-13 font-semibold text-ink-4">{label}</div>
       <h2 className="mt-1.5 text-22 font-semibold leading-[1.35] text-ink">{title}</h2>
       {children && <p className="mt-2 text-15 leading-[1.8] text-ink-3">{children}</p>}
     </header>
@@ -68,7 +68,7 @@ export function Tips({ items }: { items: Array<{ title: string; text: ReactNode 
     <ol className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
       {items.map((t, i) => (
         <li key={t.title} className="well rounded-panel p-4">
-          <div className="mono text-11 text-ink-4">0{i + 1}</div>
+          <div className="num text-13 font-semibold text-ink-4">{i + 1}</div>
           <div className="mt-1 text-15 font-semibold text-ink">{t.title}</div>
           <p className="mt-1 text-13 leading-[1.7] text-ink-3">{t.text}</p>
         </li>

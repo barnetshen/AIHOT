@@ -118,7 +118,7 @@ function TimelineRow({ r }: { r: StoryReportView }) {
   }, [r.summary, open]);
   return (
     <li className="grid gap-x-3 border-b border-line-soft py-4 last:border-b-0 lg:grid-cols-[48px_minmax(0,1fr)]">
-      <time dateTime={r.publishedAt} className="mono text-12 leading-[20px] text-ink-4">
+      <time dateTime={r.publishedAt} className="num text-12 leading-[20px] text-ink-4">
         {beijingTime(r.publishedAt)}
       </time>
       <div className="min-w-0">

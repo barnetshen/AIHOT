@@ -26,18 +26,18 @@ export function ReportArchive({ kind, index, current }: { kind: ReportKind; inde
   const groups = archiveGroups(kind, index);
   const openId = groups.find((g) => g.entries.some((e) => e.key === current))?.id ?? groups[0]?.id;
   return (
-    <aside className="sticky top-0 hidden h-dvh w-[280px] shrink-0 flex-col border-r border-line bg-[color-mix(in_srgb,var(--sidebar)_50%,var(--surface))] pl-5 pr-3 lg:flex dark:bg-[color-mix(in_srgb,var(--sidebar)_50%,var(--bg))]">
-      <div className="pb-4 pt-8">
+    <aside className="sticky top-0 hidden h-dvh w-[280px] shrink-0 flex-col border-r border-line-soft bg-sidebar pl-5 pr-3 lg:flex">
+      <div className="pb-5 pt-8">
         <KindSwitch kind={kind} />
       </div>
-      <div className="border-b border-line-strong pb-2 pl-1 text-12 font-semibold tracking-[0.3em] text-ink">往期</div>
+      {groups.length > 0 && <div className="pb-1 pl-1 text-13 font-semibold text-ink-4">往期</div>}
       <nav aria-label={`${KIND_LABEL[kind]}历史`} className="scrollbar-thin -mr-3 flex-1 overflow-y-auto pb-6 pr-3">
         {groups.map((g) => (
           <ArchiveGroup key={g.id} g={g} kind={kind} current={current} initiallyOpen={g.id === openId} />
         ))}
       </nav>
       {kind === "daily" && (
-        <IntentLink to="/daily/archive" className="flex h-12 shrink-0 items-center justify-between border-t border-line pl-1 pr-1.5 text-13 font-medium text-ink-2 transition-colors hover:text-accent">
+        <IntentLink to="/daily/archive" className="flex h-12 shrink-0 items-center justify-between border-t border-line-soft pl-1 pr-1.5 text-14 text-accent transition-opacity hover:opacity-70">
           日报合订本 <IconChevronRight size={14} />
         </IntentLink>
       )}
@@ -64,13 +64,13 @@ function ArchiveGroup({ g, kind, current, initiallyOpen }: {
   const entries = loaded ?? g.entries;
   const mark = (key: string) => archiveMark(kind, key);
   return (
-    <details open={open} onToggle={(event) => setOpen(event.currentTarget.open)} className="disclosure group/month border-b border-line">
-      <summary className="flex h-11 items-center gap-1.5 pl-1 pr-1.5 text-13 text-ink transition-colors hover:text-accent">
+    <details open={open} onToggle={(event) => setOpen(event.currentTarget.open)} className="disclosure group/month">
+      <summary className="flex h-10 items-center gap-1.5 pl-1 pr-1.5 text-14 text-ink transition-colors hover:text-accent">
         <IconChevronRight size={14} className="text-ink-4 transition-transform duration-200 group-open/month:rotate-90" />
         <span className="flex-1 font-semibold">{g.label}</span>
         <span className="num text-12 text-ink-4">{g.entries.length}</span>
       </summary>
-      {(kind !== "daily" || open) && <ul className="space-y-0.5 pb-3">
+      {(kind !== "daily" || open) && <ul className="space-y-0.5 pb-2">
         {entries.map((e) => {
           const on = e.key === current;
           return (
@@ -80,13 +80,13 @@ function ArchiveGroup({ g, kind, current, initiallyOpen }: {
                 aria-current={on ? "page" : undefined}
                 title={e.title ?? undefined}
 
-                className={`group flex gap-3 rounded-tile py-2.5 pl-2.5 pr-2 transition-colors ${on ? "bg-accent-soft" : "hover:bg-bg-sunk"}`}
+                className={`group flex gap-3 rounded-control py-2 pl-2 pr-2 transition-colors ${on ? "bg-bg-muted" : "hover:bg-bg-muted/60"}`}
               >
                 <span className="flex w-8 shrink-0 flex-col items-center">
-                  <span className={`num text-20 font-black leading-none tracking-[-0.03em] ${on ? "text-accent" : "text-ink"}`}>{mark(e.key).big}</span>
+                  <span className={`num text-17 font-semibold leading-none ${on ? "text-accent" : "text-ink"}`}>{mark(e.key).big}</span>
                   {mark(e.key).small && <span className="mt-1 whitespace-nowrap text-11 leading-none text-ink-4">{mark(e.key).small}</span>}
                 </span>
-                <span className={`line-clamp-2 min-w-0 text-13 leading-[18px] transition-colors ${on ? "font-semibold text-ink" : "text-ink-2 group-hover:text-ink"}`}>{e.title ?? `${KIND_LABEL[kind]} ${e.key}`}</span>
+                <span className={`line-clamp-2 min-w-0 text-13 leading-[18px] transition-colors ${on ? "font-semibold text-ink" : "text-ink-3 group-hover:text-ink"}`}>{e.title ?? `${KIND_LABEL[kind]} ${e.key}`}</span>
               </IntentLink>
             </li>
           );
@@ -97,24 +97,24 @@ function ArchiveGroup({ g, kind, current, initiallyOpen }: {
   );
 }
 
-/** Phones, under the bar: the three latest issues and a way further back. */
+/** Phones, under the bar: the three latest issues and a way further back, once there is more than one. */
 export function ReportPhoneNav({ kind, index, current, today }: { kind: ReportKind; index: ReportNavigationEntry[]; current: string | null; today: string }) {
   const recent = index.slice(0, 3);
   const earlier = kind === "daily" ? "/daily/archive" : "#report-history";
-  const chip = "inline-flex h-10 shrink-0 items-center rounded-full border px-4 text-13 transition-[background-color,transform] active:scale-95";
-  if (recent.length === 0) return null;
+  const chip = "inline-flex h-8 shrink-0 items-center rounded-full px-3.5 text-14 transition-[background-color,transform] active:scale-95";
+  if (index.length < 2) return null;
   return (
-    <nav aria-label={`最近的${KIND_LABEL[kind]}`} className="scrollbar-none bleed flex gap-2 overflow-x-auto pb-1 pt-1.5 lg:hidden">
+    <nav aria-label={`最近的${KIND_LABEL[kind]}`} className="scrollbar-none bleed flex gap-2 overflow-x-auto pb-3 pt-1 lg:hidden">
       {recent.map((e) => {
         const on = e.key === current;
         return (
-          <IntentLink key={e.key} to={reportPath(kind, e.key)} aria-current={on ? "page" : undefined} className={`${chip} ${on ? "border-transparent bg-accent font-semibold text-accent-contrast" : "border-line bg-surface text-ink-2 active:bg-bg-sunk"}`}>
+          <IntentLink key={e.key} to={reportPath(kind, e.key)} aria-current={on ? "page" : undefined} className={`${chip} ${on ? "bg-ink font-semibold text-bg" : "bg-field text-ink-2"}`}>
             {chipLabel(kind, e.key, index, today)}
           </IntentLink>
         );
       })}
       {index.length > 3 && (
-        <IntentLink to={earlier} viewTransition={kind === "daily"} className={`${chip} border-line bg-surface text-ink-2 active:bg-bg-sunk`}>
+        <IntentLink to={earlier} viewTransition={kind === "daily"} className={`${chip} bg-field text-ink-2`}>
           更早
         </IntentLink>
       )}

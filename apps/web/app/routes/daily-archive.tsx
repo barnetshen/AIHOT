@@ -9,8 +9,8 @@ import { beijingDate } from "@aihot/contracts/time";
 import { weekdayShort } from "../lib/format";
 import { ReportLayout } from "../features/report/ReportLayout";
 import { archiveGroups, ENTRIES_UNIT } from "../features/report/format";
-import { Rows, SectionPage } from "../features/report/ReportPaper";
-import { Nameplate } from "../features/report/Nameplate";
+import { SectionPage } from "../features/report/ReportPaper";
+import { IconChevronRight } from "../components/icons";
 import type { Screen } from "../components/shell/screens";
 
 export const handle: Screen = { tab: "daily", name: "往期" };
@@ -32,45 +32,40 @@ export default function DailyArchive() {
   const months = archiveGroups("daily", index);
   return (
     <ReportLayout kind="daily" index={index} current={null} today={today} back={{ to: "/daily", label: "日报" }} title="日报合订本">
-      <div className="@container">
-        <header className="pt-5 lg:pt-0">
-          <div className="flex items-center justify-between gap-4 text-12 text-ink-4">
-            <span>{`${SITE.name} · ${withSubject("日报")}`}</span>
-            <span>
-              共 <span className="num">{index[0]?.issueNumber ?? 0}</span> 期
-            </span>
-          </div>
-          <div className="py-6 @[880px]:py-8">
-            <h1 id="report-start" data-page-title="">
-              <span className="sr-only">日报合订本</span>
-              <Nameplate which="archive" className="block h-[50px] w-auto @[520px]:h-[70px] @[880px]:h-[98px]" />
-            </h1>
-          </div>
-          <div aria-hidden="true" className="border-t border-line-strong" />
-        </header>
-        {months.map((m) => (
-          <SectionPage key={m.id} id={`m-${m.id}`} label={m.label}>
-            <Rows items={m.entries}>
-              {(e, cell) => (
-                <IntentLink viewTransition key={e.key} to={`/daily/${e.key}`} className={`group flex gap-4 py-4 ${cell}`}>
-                  <span className="flex w-9 shrink-0 flex-col items-center">
-                    <span className="num text-24 font-black leading-none tracking-[-0.03em] text-ink transition-colors group-hover:text-accent">{e.key.slice(8, 10)}</span>
-                    <span className="mt-1.5 text-11 leading-none text-ink-4">{weekdayShort(e.key)}</span>
+      <header data-masthead="" className="pt-1 lg:pt-0">
+        <p className="text-14 font-semibold text-ink-4">
+          {withSubject("日报")} · 共 <span className="num">{index[0]?.issueNumber ?? 0}</span> 期
+        </p>
+        <h1 id="report-start" data-page-title="" className="mt-0.5 text-32 font-bold leading-[1.2] tracking-[-0.025em] text-ink lg:text-40">
+          日报合订本
+        </h1>
+      </header>
+      {months.map((m) => (
+        <SectionPage key={m.id} id={`m-${m.id}`} label={m.label} note={`${m.entries.length} 期`}>
+          <ol className="card overflow-hidden">
+            {m.entries.map((e) => (
+              <li key={e.key} className="group/row relative">
+                <span aria-hidden="true" className="absolute left-[72px] right-0 top-0 h-px bg-line-soft group-first/row:hidden lg:left-[76px]" />
+                <IntentLink viewTransition to={`/daily/${e.key}`} className="group flex items-center gap-4 px-5 py-3.5 transition-colors active:bg-bg-sunk lg:px-6 lg:hover:bg-surface-2">
+                  <span className="flex w-8 shrink-0 flex-col items-center">
+                    <span className="num text-20 font-semibold leading-none text-ink">{e.key.slice(8, 10)}</span>
+                    <span className="mt-1 text-11 leading-none text-ink-4">{weekdayShort(e.key)}</span>
                   </span>
-                  <span className="min-w-0">
-                    <span className="block text-15 font-bold leading-[1.55] text-ink transition-colors group-hover:text-accent">{e.title ?? `${withSubject("日报")} ${e.key}`}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="line-clamp-2 text-15 font-semibold leading-[1.5] text-ink transition-colors group-hover:text-accent">{e.title ?? `${withSubject("日报")} ${e.key}`}</span>
                     {!!e.count && (
-                      <span className="mt-1 block text-12 text-ink-4">
+                      <span className="mt-0.5 block text-13 text-ink-4">
                         <span className="num">{e.count}</span>{` ${ENTRIES_UNIT}`}
                       </span>
                     )}
                   </span>
+                  <IconChevronRight size={15} className="shrink-0 text-ink-4" />
                 </IntentLink>
-              )}
-            </Rows>
-          </SectionPage>
-        ))}
-      </div>
+              </li>
+            ))}
+          </ol>
+        </SectionPage>
+      ))}
     </ReportLayout>
   );
 }

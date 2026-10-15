@@ -1,13 +1,12 @@
 // Run after `npm run build -w @aihot/web`. Real production server/router, synthetic HTTP API only.
 // Failure cases: the masthead numbering the newest of 405 issues 400 (the navigation index's length); an
-// issue older than the index losing its number; the calendar marking that issue as not published; the
-// daily archive counting 400 issues beside a masthead that numbers 405.
+// issue older than the index losing its number; the daily archive counting 400 issues beside a masthead
+// that numbers 405.
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import { after, before, test } from "node:test";
 import type { ReportDetail, ReportKind, ReportNavigationEntry } from "@aihot/contracts/site";
 import { isoWeekLabel } from "@aihot/contracts/time";
-import { issueNumber, periodGrid } from "../app/features/report/format.ts";
 import { startWebServer, type WebServer } from "./web-server.ts";
 
 const kinds: ReportKind[] = ["daily", "weekly", "monthly"];
@@ -47,7 +46,7 @@ after(() => web.stop());
 
 /** The masthead's visible text (the archive's has the same frame). */
 function masthead(html: string): string {
-  const header = /<header class="pt-5 lg:pt-0">([\s\S]*?)<\/header>/.exec(html);
+  const header = /<header data-masthead=""[^>]*>([\s\S]*?)<\/header>/.exec(html);
   assert.ok(header, "the report masthead is rendered");
   return header[1]!.replace(/<[^>]+>/g, "");
 }
@@ -67,19 +66,6 @@ for (const kind of kinds) {
     const response = await fetch(`${web.origin}/${kind}/${first}`);
     assert.equal(response.status, 200, web.logs());
     assert.match(masthead(await response.text()), /第\s*1\s*期/);
-  });
-
-  test(`the ${kind} calendar labels this issue with its own number and makes up none for others`, () => {
-    const first = keys[kind][0]!;
-    const { cells } = periodGrid(kind, first, index(kind), 1);
-    const current = cells.find((cell) => cell.key === first)!;
-    assert.equal(current.state, "current");
-    assert.match(current.label, /第 1 期/);
-    const unlisted = cells.find((cell) => cell.key === keys[kind][1])!;
-    assert.doesNotMatch(unlisted.label, /第 \d+ 期/, "an issue the navigation does not list gets no number");
-    assert.equal(issueNumber(index(kind), keys[kind].at(-1)!), 405);
-    const stale = periodGrid(kind, first, [{ key: first, issueNumber: 9 }], 10);
-    assert.match(stale.cells.find((cell) => cell.key === first)!.label, /第 10 期/, "the report's own number wins over an older navigation");
   });
 }
 

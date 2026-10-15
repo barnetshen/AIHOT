@@ -30,7 +30,7 @@ export function ScoreLabel({ score, compact = false }: { score: number | null; c
     >
       {tier.dot && <span className="size-1.5 rounded-full bg-hot" aria-hidden="true" />}
       {!compact && <span className="text-11 font-medium leading-none text-ink-4">AI 评分</span>}
-      <span className="mono text-13 font-bold leading-none tabular-nums">{value}</span>
+      <span className="num text-13 font-bold leading-none tabular-nums">{value}</span>
     </span>
   );
 }

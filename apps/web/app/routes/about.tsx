@@ -181,7 +181,7 @@ function Latest({ item, className = "" }: { item: SiteStats["latest"][number] | 
   if (!item) return null;
   return (
     <IntentLink viewTransition to={`/items/${item.id}`} className={`group block ${className}`}>
-      <span className="text-11 font-semibold tracking-[0.2em] text-accent">最近精选</span>
+      <span className="text-13 font-semibold text-accent">最近精选</span>
       <span key={item.id} className="animate-fade-up mt-1.5 block">
         <span className="line-clamp-2 text-14 font-semibold leading-[1.55] text-ink transition-colors group-hover:text-accent">{item.title}</span>
         <span className="mt-1 block truncate text-12 text-ink-4">{item.source}</span>

@@ -174,7 +174,7 @@ export default function AgentPage() {
     <PhoneBar back={{ to: "/more", label: "我的" }} title="Agent 接入" />
     <ReadingLayout aside={aside}>
       <header className="lg:pt-5">
-        <Kicker>AGENT 接入</Kicker>
+        <Kicker>Agent 接入</Kicker>
         <h1 data-page-title="" className="mt-4 text-28 font-semibold leading-[1.3] text-ink sm:text-32">{`把 ${SITE.name} 接进你的 Agent`}</h1>
         <p className="mt-3 max-w-[40em] text-15 leading-[1.8] text-ink-3">{`${TRACKS.map((t) => t.short).join("、")} ${WAYS}种方式读的是同一份数据：精选、热点、日报、周报和月报，按你用的工具选一种就行。全部匿名只读，不用注册，也不用 API Key。`}</p>
         <div className="mt-4 flex flex-wrap items-center gap-2">

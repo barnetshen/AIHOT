@@ -90,7 +90,7 @@ function HeatPanel({ e }: { e: HotEntryView }) {
       <div className="flex items-baseline justify-between text-12 text-ink-4">
         <span className="font-semibold text-ink-3">24 小时热度</span>
         <span>
-          峰值 <span className="mono text-ink-2">{Math.round(peak)}</span>
+          峰值 <span className="num text-ink-2">{Math.round(peak)}</span>
           {peakAt >= 0 && <span> · {peakAt === e.spark.length - 1 ? "当前" : `${e.spark.length - 1 - peakAt} 小时前`}</span>}
         </span>
       </div>
@@ -109,7 +109,7 @@ function Lead({ e }: { e: HotEntryView }) {
   return (
     <article className="card card-hover group relative flex flex-col overflow-hidden p-5 sm:p-6">
       <div className="flex items-center gap-2.5">
-        <span className={`mono text-12 font-bold tracking-[0.16em] ${rankColor(e.rank)}`}>NO.{pad(e.rank)}</span>
+        <span className={`num text-13 font-semibold ${rankColor(e.rank)}`}>NO.{pad(e.rank)}</span>
         <Badges e={e} />
         <Delta trend={e.trend} pct={e.trendPct} className="ml-auto" />
       </div>
@@ -147,7 +147,7 @@ function Lead({ e }: { e: HotEntryView }) {
         <div className="flex w-full shrink-0 items-end justify-between gap-5 sm:ml-auto sm:w-auto sm:justify-end">
           {!panel && <Sparkline values={e.spark} className="h-10 w-[140px]" />}
           <div className="text-right">
-            <div className="mono text-36 font-semibold leading-none tracking-[-0.03em] text-ink">{Math.round(e.heat)}</div>
+            <div className="num text-36 font-semibold leading-none tracking-[-0.03em] text-ink">{Math.round(e.heat)}</div>
             <div className="mt-1 text-12 text-ink-4">热度指数</div>
           </div>
         </div>
@@ -161,7 +161,7 @@ function Runner({ e }: { e: HotEntryView }) {
   return (
     <article className="card card-hover group relative flex flex-col px-5 py-4">
       <div className="flex items-center gap-2.5">
-        <span className={`mono text-12 font-bold tracking-[0.16em] ${rankColor(e.rank)}`}>NO.{pad(e.rank)}</span>
+        <span className={`num text-13 font-semibold ${rankColor(e.rank)}`}>NO.{pad(e.rank)}</span>
         <Badges e={e} />
         <Delta trend={e.trend} pct={e.trendPct} className="ml-auto" />
       </div>
@@ -179,7 +179,7 @@ function Runner({ e }: { e: HotEntryView }) {
         </div>
         <div className="flex items-end gap-3">
           <Sparkline values={e.spark} className="h-7 w-[92px]" />
-          <span className="mono text-24 font-semibold leading-none tracking-[-0.02em] text-ink">{Math.round(e.heat)}</span>
+          <span className="num text-24 font-semibold leading-none tracking-[-0.02em] text-ink">{Math.round(e.heat)}</span>
         </div>
       </div>
     </article>
@@ -190,7 +190,7 @@ function Runner({ e }: { e: HotEntryView }) {
 function Row({ e }: { e: HotEntryView }) {
   return (
     <li className="group relative grid grid-cols-[30px_minmax(0,1fr)] items-start gap-x-3 px-4 py-3 transition-colors hover:bg-bg-sunk/70 sm:px-5 lg:grid-cols-[44px_minmax(0,1fr)_auto_104px_76px] lg:items-center lg:gap-x-6 lg:px-6 lg:py-3.5 dark:hover:bg-bg-muted/40">
-      <span className={`mono text-16 font-semibold leading-[24px] lg:text-17 ${rankColor(e.rank)}`} aria-label={`热度排名第 ${e.rank} 位`}>
+      <span className={`num text-16 font-semibold leading-[24px] lg:text-17 ${rankColor(e.rank)}`} aria-label={`热度排名第 ${e.rank} 位`}>
         {pad(e.rank)}
       </span>
       <div className="min-w-0">
@@ -209,7 +209,7 @@ function Row({ e }: { e: HotEntryView }) {
             <span className="num">{e.sourceCount}</span> 个来源
           </span>
           <span className="ml-auto flex items-center gap-2">
-            <span className="mono text-17 font-semibold leading-none text-ink">{Math.round(e.heat)}</span>
+            <span className="num text-17 font-semibold leading-none text-ink">{Math.round(e.heat)}</span>
             <Delta trend={e.trend} pct={e.trendPct} />
           </span>
         </div>
@@ -219,7 +219,7 @@ function Row({ e }: { e: HotEntryView }) {
       </div>
       <Sparkline values={e.spark} className="hidden h-7 w-[104px] lg:block" />
       <div className="hidden flex-col items-end gap-1 lg:flex">
-        <span className="mono text-20 font-semibold leading-none tracking-[-0.02em] text-ink">{Math.round(e.heat)}</span>
+        <span className="num text-20 font-semibold leading-none tracking-[-0.02em] text-ink">{Math.round(e.heat)}</span>
         <Delta trend={e.trend} pct={e.trendPct} />
       </div>
     </li>
