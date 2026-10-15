@@ -18,13 +18,14 @@ import { issueName, type Entry, type Scene } from "./scenes.ts";
 export const WIDTH = 1080;
 export const HEIGHT = 1920;
 
-const BG = "#0a1012";
-const INK = "#ffffff";
-const SOFT = "#b1bec0";
-const MUTED = "#82939a";
-export const ACCENT = "#2ce2e8";
-const LINE = "rgba(230,237,237,0.16)";
-const DONE = "rgba(44,226,232,0.45)";
+// The site's dark theme (apps/web/app/app.css): white on black, Apple blue for marks.
+const BG = "#000000";
+const INK = "#f5f5f7";
+const SOFT = "#c7c7cc";
+const MUTED = "#98989d";
+export const ACCENT = "#2997ff";
+const LINE = "rgba(255,255,255,0.14)";
+const DONE = "rgba(41,151,255,0.45)";
 
 let fontsPromise: Promise<Array<{ name: string; data: Buffer; weight: 400 | 700; style: "normal" }>> | null = null;
 
@@ -81,7 +82,7 @@ function frame(pass: Pass, children: Array<Node | null>): Node {
       // Layers are transparent around their part.
       ...(pass.which === "base" ? {
         backgroundColor: BG,
-        backgroundImage: "radial-gradient(circle at 92% 6%, rgba(44,226,232,0.26), rgba(10,16,18,0) 42%), radial-gradient(circle at 0% 100%, rgba(23,107,117,0.38), rgba(10,16,18,0) 48%)",
+        backgroundImage: "radial-gradient(circle at 92% 6%, rgba(41,151,255,0.14), rgba(0,0,0,0) 40%), radial-gradient(circle at 0% 100%, rgba(255,255,255,0.06), rgba(0,0,0,0) 50%)",
       } : {}),
     },
     children.filter(Boolean),
@@ -148,7 +149,7 @@ async function news(pass: Pass, entry: Entry, right: string, top: Node[]): Promi
     entry.summary ? pass.layer(3, text({ marginTop: boxed ? 28 : 48, fontSize: boxed ? 38 : 42, lineHeight: 1.65, color: SOFT }, entry.summary)) : null,
     pass.layer(4, h("div", { display: "flex", alignItems: "center", marginTop: boxed ? 32 : 56, fontSize: 32, color: MUTED }, [
       text({}, `来源：${entry.source}`),
-      entry.firstParty ? text({ marginLeft: 18, padding: "4px 16px", borderRadius: 8, backgroundColor: "rgba(44,226,232,0.14)", color: ACCENT, fontSize: 28 }, "一手") : null,
+      entry.firstParty ? text({ marginLeft: 18, padding: "4px 16px", borderRadius: 8, backgroundColor: "rgba(41,151,255,0.16)", color: ACCENT, fontSize: 28 }, "一手") : null,
       others ? text({ marginLeft: 24 }, `· ${others}`) : null,
     ].filter(Boolean))),
     h("div", { display: "flex", flex: 1 }),
@@ -209,7 +210,7 @@ async function tree(scene: Scene, pass: Pass): Promise<Node> {
         footer(pass, null),
       ]);
     case "outro": {
-      const qr = `data:image/svg+xml;base64,${Buffer.from(renderSVG(scene.url, { border: 0, ecc: "M", blackColor: "#0e191b", whiteColor: "#ffffff" })).toString("base64")}`;
+      const qr = `data:image/svg+xml;base64,${Buffer.from(renderSVG(scene.url, { border: 0, ecc: "M", blackColor: "#111111", whiteColor: "#ffffff" })).toString("base64")}`;
       return frame(pass, [
         await header(pass, SITE.tagline),
         h("div", { display: "flex", flexDirection: "column", alignItems: "center", marginTop: 300 }, [

@@ -253,7 +253,7 @@ export function resolvedTheme(pref: ThemePreference = getThemePreference()): "li
 }
 
 /** The browser chrome around the page: the page ground of each theme (app.css --bg). */
-export const THEME_COLOR = { light: "#f3f5f7", dark: "#0a0e11" } as const;
+export const THEME_COLOR = { light: "#f5f5f7", dark: "#000000" } as const;
 
 /** Puts a theme on the page: the document's data-theme and the browser's theme colour. */
 export function applyTheme(theme: "light" | "dark", followsSystem: boolean) {

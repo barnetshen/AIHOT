@@ -38,15 +38,14 @@ export function DayHeader({ day, today, count, collapsed, onToggle, aside }: { d
   const short = weekdayShort(day);
   const phoneRow = (
     <>
-      {day === today && <span aria-hidden="true" className="bg-brand size-1.5 rounded-full shadow-[0_0_0_3px_var(--accent-soft)]" />}
       <span className="text-15 font-bold tracking-[-0.01em] text-ink">{day === today ? "今天" : date}</span>
       {day === today && <span className="text-13 text-ink-4">{date}</span>}
       <span className="text-13 text-ink-4">{short}</span>
       <span className="ml-auto flex items-center gap-1 text-13 text-ink-4">
         {aside}
         {count !== null && (
-          <span className="rounded-full bg-surface px-2 py-0.5 ring-1 ring-line-soft dark:bg-raised">
-            <span className="num font-semibold text-ink-2">{count}</span> 条
+          <span>
+            <span className="num">{count}</span> 条
           </span>
         )}
         {onToggle && <IconChevronDown size={15} className={`transition-transform duration-200 ${collapsed ? "-rotate-90" : ""}`} />}
@@ -54,7 +53,7 @@ export function DayHeader({ day, today, count, collapsed, onToggle, aside }: { d
     </>
   );
   return (
-    <div className="bleed sticky top-[var(--bar-h)] z-20 bg-daybar/85 backdrop-blur-xl lg:mx-0 lg:bg-bg lg:px-0 lg:backdrop-blur-none">
+    <div className="bleed sticky top-[var(--bar-h)] z-20 bg-daybar/90 backdrop-blur-xl lg:mx-0 lg:bg-bg lg:px-0 lg:backdrop-blur-none">
       {/* Phones: a full-width day bar; on the timeline the whole bar folds the day. */}
       {onToggle ? (
         <button type="button" onClick={onToggle} aria-expanded={!collapsed} aria-label={`${collapsed ? "展开" : "收起"}${date}`} className="flex h-11 w-full items-center gap-2 text-left lg:hidden">
@@ -99,8 +98,7 @@ export function DayHeader({ day, today, count, collapsed, onToggle, aside }: { d
 }
 
 /**
- * One dated slot: the time, the rail (desktop) and the item. As on the original timeline, the rail is a
- * 1px line from this node's centre to the next one's, so the day reads as one continuous thread.
+ * One dated slot: the time (desktop, in a column of its own) and the item.
  */
 export function TimelineSlot({ at, children, fresh = false, delay = 0, dataKey }: { at: string; children: React.ReactNode; fresh?: boolean; delay?: number; dataKey?: string }) {
   return (
@@ -109,15 +107,11 @@ export function TimelineSlot({ at, children, fresh = false, delay = 0, dataKey }
       className={`group/slot pb-2.5 lg:pb-0 ${fresh ? "animate-fade-up" : ""}`}
       style={fresh ? { animationDelay: `${delay}ms` } : undefined}
     >
-      {/* Phones: a card without the rail (the item shows its time), pressing in a little under the finger. */}
-      <div className="grid grid-cols-[minmax(0,1fr)] rounded-card bg-surface px-4 py-3.5 shadow-[var(--shadow-card)] ring-1 ring-line-soft transition-transform duration-150 ease-[var(--ease-out-quart)] touch:has-[a:active]:scale-[0.985] lg:grid-cols-[64px_22px_minmax(0,1fr)] lg:rounded-none lg:bg-transparent lg:p-0 lg:pb-3 lg:shadow-none lg:ring-0 lg:group-last/slot:pb-0 lg:touch:has-[a:active]:scale-100">
-        <time dateTime={at} className="mono hidden text-ink-3 lg:block lg:pt-[17px] lg:text-13 lg:font-semibold lg:leading-6">
+      {/* Phones: a card (the item shows its time), pressing in a little under the finger. */}
+      <div className="grid grid-cols-[minmax(0,1fr)] rounded-card bg-surface px-4 py-3.5 transition-transform duration-150 ease-[var(--ease-out-quart)] touch:has-[a:active]:scale-[0.985] lg:grid-cols-[56px_minmax(0,1fr)] lg:rounded-none lg:bg-transparent lg:p-0 lg:pb-3 lg:group-last/slot:pb-0 lg:touch:has-[a:active]:scale-100">
+        <time dateTime={at} className="num hidden text-ink-4 lg:block lg:pt-[17px] lg:text-13 lg:leading-6">
           {beijingTime(at)}
         </time>
-        <span aria-hidden="true" className="relative hidden lg:block">
-          <span className="absolute -bottom-[41px] left-[10.5px] top-[29px] w-px bg-line-strong group-last/slot:hidden" />
-          <span className="bg-brand absolute left-[7px] top-[25px] size-2 rounded-full shadow-[0_0_0_4px_var(--bg)] transition-[transform,box-shadow] duration-300 group-hover/slot:scale-125 group-hover/slot:shadow-[0_0_0_4px_var(--bg),0_0_0_7px_var(--accent-soft)]" />
-        </span>
         {children}
       </div>
     </li>

@@ -1,9 +1,7 @@
-// The broadcasts on the web: a tab of the phone tab bar, an entry in the sidebar's 内容, a strip and a
-// side-column card on the home page (web/home.tsx), and a floating card on the report pages
-// (web/bubble.tsx).
+// The broadcasts on the web: a tab of the phone tab bar, an entry in the sidebar's 内容, and a strip and
+// a side-column card on the home page (web/home.tsx).
 import type { SVGProps } from "react";
 import { defineWebModule } from "@aihot/web/modules";
-import { VideoBubble } from "./web/bubble.tsx";
 
 function IconVideo({ size = 18, ...rest }: SVGProps<SVGSVGElement> & { size?: number }) {
   return (
@@ -18,6 +16,5 @@ export default defineWebModule({
   name: "report-videos",
   sidebar: { section: "内容", items: [{ to: "/videos", label: "视频播报", icon: IconVideo }] },
   tabs: [{ key: "videos", to: "/videos", label: "视频", icon: IconVideo }],
-  root: { Top: VideoBubble },
   home: () => import("./web/home.tsx"),
 });

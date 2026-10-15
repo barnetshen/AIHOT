@@ -1,4 +1,4 @@
-import { Link, redirect, useLoaderData } from "react-router";
+import { redirect, useLoaderData } from "react-router";
 import type { Route } from "./+types/home";
 import type { TimelineResponse } from "@aihot/contracts/site";
 import { apiGet, cachedPage, loadOr404 } from "../lib/api.server";
@@ -8,9 +8,7 @@ import type { Screen } from "../components/shell/screens";
 import { Timeline } from "../features/feed/Timeline";
 import { HotTopics } from "../features/feed/HotTopics";
 import { ActiveFilters, CategoryTabs, FeedBar, SearchField } from "../features/feed/Filters";
-import { IconDoc, IconPlug, IconRss, IconSparkles } from "../components/icons";
 import { loadParts } from "../site-modules";
-import { EDITION_WHEN, withSubject } from "@aihot/site";
 
 export const handle: Screen = { tab: "featured", name: "精选" };
 const PARTS = await loadParts((m) => m.home);
@@ -40,14 +38,6 @@ export function meta({ loaderData }: Route.MetaArgs) {
   return pageMeta({ path, jsonLd: path === "/" ? [...siteLd(), itemListLd("/", "精选", titles)] : undefined });
 }
 
-/** Ways on from the side column: the reports and the ways to take the feed elsewhere. */
-const ONWARD = [
-  { to: "/daily", label: withSubject("日报"), note: EDITION_WHEN.daily, icon: IconDoc },
-  { to: "/weekly", label: withSubject("周报"), note: EDITION_WHEN.weekly, icon: IconSparkles },
-  { to: "/agent?tab=rss", label: "RSS 订阅", note: "用阅读器订阅", icon: IconRss },
-  { to: "/agent", label: "Agent 接入", note: "MCP · API", icon: IconPlug },
-];
-
 export default function Home() {
   const { data, filters, plain, parts } = useLoaderData<typeof loader>();
   const title = filters.tag ? `#${filters.tag}` : "精选";
@@ -76,19 +66,6 @@ export default function Home() {
         <div className="scrollbar-none sticky top-6 max-h-[calc(100dvh-3rem)] space-y-7 overflow-y-auto pb-2">
           {plain && PARTS.map(({ name, part: { Rail } }, i) => Rail && <Rail key={name} data={parts[i]} />)}
           {data.hot && <HotTopics entries={data.hot} compact />}
-          <nav aria-label="更多入口" className="grid grid-cols-2 gap-2.5">
-            {ONWARD.map((o) => (
-              <Link key={o.to} to={o.to} prefetch="intent" className="card card-hover group flex flex-col gap-2 p-3.5">
-                <span className="flex size-8 items-center justify-center rounded-control bg-accent-soft text-accent transition-transform duration-200 group-hover:scale-110">
-                  <o.icon size={17} />
-                </span>
-                <span>
-                  <span className="block text-14 font-semibold text-ink">{o.label}</span>
-                  <span className="block text-12 text-ink-4">{o.note}</span>
-                </span>
-              </Link>
-            ))}
-          </nav>
         </div>
       </aside>
     </div>

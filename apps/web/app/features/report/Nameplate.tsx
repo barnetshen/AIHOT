@@ -17,7 +17,7 @@ export function Nameplate({ which, className = "" }: { which: keyof typeof NAMEP
   const n = NAMEPLATES[which];
   return (
     <svg viewBox={n.viewBox} className={className} aria-hidden="true" focusable="false">
-      <use href={`${n.url}#accent`} className="fill-accent" />
+      <use href={`${n.url}#accent`} className="fill-brand" />
       <use href={`${n.url}#ink`} className="fill-ink" />
     </svg>
   );

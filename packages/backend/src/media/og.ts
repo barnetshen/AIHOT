@@ -8,7 +8,7 @@ import sharp from "sharp";
 import { config, REPO_ROOT } from "../config.ts";
 import { SITE } from "@aihot/site";
 
-export const OG_TEMPLATE_VERSION = "og-2026-09-29.1";
+export const OG_TEMPLATE_VERSION = "og-2026-10-15.1";
 const WIDTH = 1200;
 const HEIGHT = 630;
 const CACHE_DIR = path.join(config.dataDir, "ogcache");
@@ -20,7 +20,7 @@ export interface OgCard {
   meta?: string | null;
   /** Small emphasised figure on the right (e.g. an item score). */
   badge?: { value: string; label: string } | null;
-  accent?: "teal" | "hot" | "amber";
+  accent?: "brand" | "hot" | "amber";
 }
 
 let fontsPromise: Promise<Array<{ name: string; data: Buffer; weight: 400 | 700; style: "normal" }>> | null = null;
@@ -78,7 +78,7 @@ export function nameMark(size: number, color: string, dot: string): Node {
   ]);
 }
 
-const ACCENTS = { teal: "#2ce2e8", hot: "#ff7a5f", amber: "#e2b454" } as const;
+const ACCENTS = { brand: "#2997ff", hot: "#ff453a", amber: "#d6b16b" } as const;
 
 export function clamp(text: string, max: number) {
   const chars = [...text.replace(/\s+/g, " ").trim()];
@@ -86,7 +86,7 @@ export function clamp(text: string, max: number) {
 }
 
 async function tree(card: OgCard): Promise<Node> {
-  const accent = ACCENTS[card.accent ?? "teal"];
+  const accent = ACCENTS[card.accent ?? "brand"];
   const title = clamp(card.title, 64);
   const titleSize = [...title].length > 40 ? 50 : [...title].length > 24 ? 58 : 66;
   return h(
@@ -98,14 +98,14 @@ async function tree(card: OgCard): Promise<Node> {
       flexDirection: "column",
       padding: "64px 72px",
       fontFamily: "Noto Sans SC",
-      color: "#e6eded",
-      backgroundColor: "#0a1012",
-      backgroundImage: "radial-gradient(circle at 88% 8%, rgba(44,226,232,0.28), rgba(10,16,18,0) 46%), radial-gradient(circle at 0% 100%, rgba(23,107,117,0.35), rgba(10,16,18,0) 50%)",
+      color: "#f5f5f7",
+      backgroundColor: "#000000",
+      backgroundImage: "radial-gradient(circle at 88% 8%, rgba(41,151,255,0.14), rgba(0,0,0,0) 46%), radial-gradient(circle at 0% 100%, rgba(255,255,255,0.06), rgba(0,0,0,0) 50%)",
     },
     [
       h("div", { display: "flex", alignItems: "center", justifyContent: "space-between" }, [
-        (await brandMark("wordmark-dark.svg", 40)) ?? nameMark(34, "#e6eded", "#2ce2e8"),
-        h("div", { display: "flex", fontSize: 24, color: "#82939a" }, SITE_HOST),
+        (await brandMark("wordmark-dark.svg", 40)) ?? nameMark(34, "#f5f5f7", "#2997ff"),
+        h("div", { display: "flex", fontSize: 24, color: "#98989d" }, SITE_HOST),
       ]),
       h("div", { display: "flex", marginTop: 56, alignItems: "center" }, [
         h("div", { width: 10, height: 10, borderRadius: 999, backgroundColor: accent, marginRight: 14 }),
@@ -115,16 +115,16 @@ async function tree(card: OgCard): Promise<Node> {
         h("div", { display: "flex", flexDirection: "column", flex: 1 }, [
           h("div", { display: "flex", fontSize: titleSize, fontWeight: 700, lineHeight: 1.25, color: "#ffffff" }, title),
           // Long titles take three lines; the summary then gets one line so nothing reaches the footer.
-          card.subtitle ? h("div", { display: "flex", marginTop: 22, fontSize: 28, lineHeight: 1.5, color: "#b1bec0" }, clamp(card.subtitle, [...title].length > 40 ? 26 : [...title].length > 24 ? 50 : 78)) : null,
+          card.subtitle ? h("div", { display: "flex", marginTop: 22, fontSize: 28, lineHeight: 1.5, color: "#c7c7cc" }, clamp(card.subtitle, [...title].length > 40 ? 26 : [...title].length > 24 ? 50 : 78)) : null,
         ].filter(Boolean)),
         card.badge
           ? h("div", { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: 170, height: 170, borderRadius: 999, border: `6px solid ${accent}` }, [
               h("div", { display: "flex", fontSize: 58, fontWeight: 700, color: "#ffffff" }, card.badge.value),
-              h("div", { display: "flex", fontSize: 22, color: "#82939a" }, card.badge.label),
+              h("div", { display: "flex", fontSize: 22, color: "#98989d" }, card.badge.label),
             ])
           : null,
       ].filter(Boolean)),
-      card.meta ? h("div", { display: "flex", fontSize: 24, color: "#82939a", borderTop: "1px solid rgba(230,237,237,0.12)", paddingTop: 22 }, clamp(card.meta, 70)) : null,
+      card.meta ? h("div", { display: "flex", fontSize: 24, color: "#98989d", borderTop: "1px solid rgba(255,255,255,0.12)", paddingTop: 22 }, clamp(card.meta, 70)) : null,
     ].filter(Boolean),
   );
 }

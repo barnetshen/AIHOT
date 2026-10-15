@@ -74,10 +74,9 @@ export default function MorePage() {
     <div className="mx-auto max-w-[var(--page-max-reading)] pb-8">
       <PhoneBar title="我的" large />
       <h1 className="hidden pb-4 pt-1 text-28 font-bold tracking-[-0.02em] text-ink lg:block">我的</h1>
-      {/* Whose app this is: the mark, the name and what it does, over a soft wash of the brand colour. */}
-      <section className="relative mb-2 overflow-hidden rounded-sheet bg-surface p-5 shadow-[var(--shadow-card)] ring-1 ring-line-soft dark:bg-raised">
-        <span aria-hidden="true" className="bg-brand absolute -right-14 -top-24 size-56 rounded-full opacity-20 blur-3xl" />
-        <div className="relative flex items-center gap-3.5">
+      {/* Whose app this is: the mark, the name and what it does. */}
+      <section className="mb-2 rounded-sheet bg-surface p-5">
+        <div className="flex items-center gap-3.5">
           <img src="/icon-192.png" alt="" className="size-14 rounded-panel shadow-[var(--shadow-thumb)]" />
           <div className="min-w-0">
             <div className="text-20 font-bold tracking-[-0.01em] text-ink">{SITE.name}</div>

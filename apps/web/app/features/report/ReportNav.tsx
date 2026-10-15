@@ -108,7 +108,7 @@ export function ReportPhoneNav({ kind, index, current, today }: { kind: ReportKi
       {recent.map((e) => {
         const on = e.key === current;
         return (
-          <IntentLink key={e.key} to={reportPath(kind, e.key)} aria-current={on ? "page" : undefined} className={`${chip} ${on ? "border-transparent bg-accent font-semibold text-accent-contrast shadow-[0_4px_12px_-2px_var(--brand-glow)]" : "border-line bg-surface text-ink-2 active:bg-bg-sunk"}`}>
+          <IntentLink key={e.key} to={reportPath(kind, e.key)} aria-current={on ? "page" : undefined} className={`${chip} ${on ? "border-transparent bg-accent font-semibold text-accent-contrast" : "border-line bg-surface text-ink-2 active:bg-bg-sunk"}`}>
             {chipLabel(kind, e.key, index, today)}
           </IntentLink>
         );

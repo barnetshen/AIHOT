@@ -1,13 +1,14 @@
 import { ITEM_COPY } from "@aihot/site";
 
 /**
- * The AI score as a small pill, tinted by tier instead of drawn as a bar: strong picks (85+) in a wash of
- * warm red, solid ones (70+) in the accent, the rest as quiet text. The score itself is unchanged.
+ * The AI score as a quiet figure, set by tier rather than drawn as a bar: strong picks (85+) in ink with
+ * a red dot before them, solid ones (70+) in ink, the rest greyed; a page of strong picks stays calm.
+ * The score itself is unchanged.
  */
 const TIERS = [
-  { min: 85, className: "bg-hot/10 text-hot ring-hot/20" },
-  { min: 70, className: "bg-accent-soft text-accent ring-accent/15" },
-  { min: 0, className: "bg-bg-sunk text-ink-4 ring-line-soft" },
+  { min: 85, className: "text-ink", dot: true },
+  { min: 70, className: "text-ink-2", dot: false },
+  { min: 0, className: "text-ink-4", dot: false },
 ];
 
 /** The score readers see: none when the site keeps scores from them. */
@@ -25,14 +26,10 @@ export function ScoreLabel({ score, compact = false }: { score: number | null; c
     <span
       title={`AI 评分 ${value}/100`}
       aria-label={`AI 评分 ${value} 分`}
-      className={`inline-flex h-[20px] shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-2 ring-1 ring-inset ${tier.className}`}
+      className={`inline-flex h-[20px] shrink-0 items-center gap-1.5 whitespace-nowrap ${tier.className}`}
     >
-      {!compact && (
-        <>
-          <span className="text-11 font-medium leading-none opacity-80">AI 评分</span>
-          <span className="h-2.5 w-px bg-current opacity-25" aria-hidden="true" />
-        </>
-      )}
+      {tier.dot && <span className="size-1.5 rounded-full bg-hot" aria-hidden="true" />}
+      {!compact && <span className="text-11 font-medium leading-none text-ink-4">AI 评分</span>}
       <span className="mono text-13 font-bold leading-none tabular-nums">{value}</span>
     </span>
   );

@@ -18,7 +18,7 @@ export function NavigationProgress({ active }: { active: boolean }) {
   return (
     <div className="pointer-events-none fixed inset-x-0 top-0 z-[60] h-[3px] overflow-hidden" aria-hidden="true">
       <div
-        className="bg-brand h-full origin-left shadow-[0_0_8px_var(--brand-glow)]"
+        className="bg-brand h-full origin-left"
         style={{
           transform: `scaleX(${visible ? 0.85 : active ? 0 : 1})`,
           opacity: visible ? 1 : 0,

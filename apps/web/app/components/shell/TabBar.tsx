@@ -12,8 +12,8 @@ const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayout
 const COLUMNS: Record<number, string> = { 4: "grid-cols-4", 5: "grid-cols-5" };
 
 /**
- * The phone tab bar (below lg): a frosted dock floating above the bottom edge, the lit tab's icon in a
- * soft pill. A page lights the tab it declares; pages reached from several tabs keep
+ * The phone tab bar (below lg): a frosted dock floating above the bottom edge, the lit tab in the tint.
+ * A page lights the tab it declares; pages reached from several tabs keep
  * the tab the reader came from. Tapping the tab you are on goes back to its first screen (sliding back,
  * as the bar's back button does); on that screen it scrolls to the top, and at the top it reloads the
  * page's data. Articles bring their own toolbar instead.
@@ -61,10 +61,10 @@ export function TabBar({ changelogVersion }: { changelogVersion: string | null }
                   void revalidator.revalidate();
                 }
               }}
-              className={`group relative flex flex-col items-center justify-center gap-[3px] text-11 transition-colors ${on ? "font-semibold text-accent" : "text-ink-4 active:text-ink"}`}
+              className={`group relative flex flex-col items-center justify-center gap-[3px] text-11 transition-colors ${on ? "font-medium text-accent" : "text-ink-4 active:text-ink"}`}
             >
-              <span className={`flex h-7 w-12 items-center justify-center rounded-full transition-[background-color,transform] duration-300 ease-[var(--ease-out-quart)] group-active:scale-90 ${on ? "bg-accent-soft" : ""}`}>
-                <Icon size={22} />
+              <span className="flex h-7 items-center justify-center transition-transform duration-200 group-active:scale-90">
+                <Icon size={23} />
               </span>
               <span className="leading-none">{t.label}</span>
               {dot && t.changelog && <span className="absolute left-[calc(50%+11px)] top-[9px] size-1.5 rounded-full bg-hot ring-2 ring-surface" aria-label="有新的更新" />}

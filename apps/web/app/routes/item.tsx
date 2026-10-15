@@ -351,7 +351,7 @@ function ItemView({ item }: { item: SiteItemDetail }) {
         href={item.links.original}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-full bg-accent px-3.5 text-13 font-semibold text-accent-contrast shadow-[0_4px_12px_-3px_var(--brand-glow)] transition-[filter,transform] hover:brightness-110 active:scale-[0.97]"
+        className="inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-full bg-accent px-3.5 text-13 font-semibold text-accent-contrast transition-[opacity,transform] hover:opacity-85 active:scale-[0.97]"
       >
         {originalLabel} <IconExternal size={13} />
       </a>
